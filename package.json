@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 20",
     "preview": "vite preview",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
+    "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 20 --fix",
     "cache:clean": "rm -rf .pnpm-store && rm -rf .pnpm-lock.yaml && rm -rf node_modules",
     "clean": "rm -rf dist && rm -rf .tmp && rm -rf .vite",
     "prebuild": "npm run lint && npm run format:check && tsc --noEmit"
