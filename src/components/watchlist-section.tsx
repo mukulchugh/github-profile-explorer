@@ -51,6 +51,7 @@ export function WatchlistSection({ onSelectUser }: WatchlistSectionProps) {
         icon={IconBookmark}
         title="Your watch list is empty"
         description="Add GitHub users to your watchlist to monitor them"
+        className="bg-white h-full dark:bg-zinc-900"
       />
     );
   }

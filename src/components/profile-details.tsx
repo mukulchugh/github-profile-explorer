@@ -83,7 +83,7 @@ export function ProfileDetails({
         icon={IconSearch}
         title="No profile selected"
         description="Search for a GitHub user or select one from your history"
-        className="bg-white h-full"
+        className="bg-white h-full dark:bg-zinc-900 "
       />
     );
   }
@@ -94,6 +94,7 @@ export function ProfileDetails({
         icon={IconUser}
         title={`No profile found for "${username}"`}
         description="Try searching for another username"
+        className="bg-white h-full dark:bg-zinc-900"
       />
     );
   }

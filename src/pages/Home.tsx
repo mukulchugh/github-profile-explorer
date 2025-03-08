@@ -25,6 +25,7 @@ import {
   IconHistory,
   IconSearch,
 } from "@tabler/icons-react";
+import { useTheme } from "next-themes";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -35,6 +36,7 @@ const viewSizes = {
 };
 
 function HomeContent() {
+  const { theme } = useTheme();
   const [isCollapsed, setIsCollapsed] = React.useState(true);
   const isMobile = useMobile();
   const { activeView, setActiveView, setCompareUsernames } = useViewControl();
@@ -242,7 +244,7 @@ function HomeContent() {
               )}
             >
               <div className="flex items-center justify-center  w-full h-auto">
-                <img src={logo} alt="Logo" className="h-12 w-12 p-2 mb-1" />
+                <IconBrandGithub className="h-12 w-12 p-2 mb-1 " />
               </div>
 
               <Separator />
@@ -299,14 +301,16 @@ function HomeContent() {
               </Tabs>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel {...viewSizes.third} className="flex flex-col">
+            <ResizablePanel {...viewSizes.third} className="flex flex-col ">
               <div className="flex h-[52px] items-center justify-center">
                 <h1 className="text-xl font-bold">
                   {activeView === "compare" ? "Comparison Results" : "Profile"}
                 </h1>
               </div>
               <Separator />
-              <div className="flex-1 overflow-auto p-4 bg-zinc-50">{renderRightContent()}</div>
+              <div className={cn("flex-1 overflow-auto p-4", "dark:bg-zinc-950", "bg-zinc-50")}>
+                {renderRightContent()}
+              </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         )}
@@ -318,25 +322,17 @@ function HomeContent() {
 
 const Footer = () => {
   return (
-    <Card
-      className="flex 
-      justify-between 
-      items-center  px-6 py-4
-    "
-    >
+    <Card className="flex justify-between items-center px-6 py-4 bg-card rounded-none !border-t border-border border-b-0 border-l-0 border-r-0">
       <p>
         built with ❤️ by
-        <a
-          href="https://mukulchugh.com"
-          className="text-primary ml-1 hover:underline hover:text-violet-600"
-        >
+        <a href="https://mukulchugh.com" className="text-primary ml-1 hover:underline">
           Mukul Chugh
         </a>
       </p>
       <p>
         <a
           href="https://github.com/mukulchugh/github-profile-explorer"
-          className="text-primary ml-1 flex items-center gap-1 hover:underline hover:text-violet-600"
+          className="text-primary ml-1 flex items-center gap-1 hover:underline "
         >
           <IconBrandGithub className="h-4 w-4 " />
           View Source Code

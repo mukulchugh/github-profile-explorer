@@ -6,6 +6,7 @@ import {
   IconExternalLink,
   IconMail,
   IconMapPin,
+  IconPlus,
   IconTrash,
   IconUser,
 } from "@tabler/icons-react";
@@ -90,7 +91,6 @@ export function UserProfileCard({
     );
   }
 
-  // Search variant for search results
   if (variant === "search") {
     return (
       <Card
@@ -137,7 +137,6 @@ export function UserProfileCard({
     );
   }
 
-  // Default (full) variant
   return (
     <Card className={cn("", className)}>
       <CardHeader>
@@ -233,8 +232,13 @@ export function UserProfileCard({
           href={user.html_url}
           target="_blank"
           rel="noreferrer"
-          className={cn(buttonVariants({ variant: "outline" }), "w-full sm:w-auto")}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "py-4",
+            "w-full sm:w-auto"
+          )}
         >
+          <IconExternalLink className="h-4 w-4" />
           View on GitHub
         </a>
         {onAddToWatchlist && (
@@ -242,8 +246,19 @@ export function UserProfileCard({
             variant={isInWatchlist ? "destructive" : "default"}
             onClick={() => onAddToWatchlist(user)}
             className="w-full sm:w-auto"
+            size={"sm"}
           >
-            {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+            {isInWatchlist ? (
+              <>
+                <IconTrash className="h-4 w-4" />
+                Remove from Watchlist
+              </>
+            ) : (
+              <>
+                <IconPlus className="h-4 w-4" />
+                Add to Watchlist
+              </>
+            )}
           </Button>
         )}
       </CardFooter>

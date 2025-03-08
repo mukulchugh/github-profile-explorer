@@ -46,7 +46,6 @@ export function useGitHubFollowers({
       },
     });
 
-  // Handle error with useEffect
   useEffect(() => {
     if (error && enabled) {
       let errorMessage = `Failed to load ${type}. Please try again.`;
