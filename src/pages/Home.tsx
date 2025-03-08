@@ -34,30 +34,17 @@ const viewSizes = {
 
 function HomeContent() {
   const [isCollapsed, setIsCollapsed] = React.useState(true);
-
-  // Use our custom hook
   const isMobile = useMobile();
-
-  // View control state
   const { activeView, setActiveView, setCompareUsernames } = useViewControl();
 
-  // Add state for selected username and search query
   const [selectedUsername, setSelectedUsername] = React.useState<string | undefined>();
 
-  // Use search history hook directly
   const { addToHistory } = useSearchHistory();
 
-  // Use GitHub search hook for user details
   const { getUserDetails } = useGitHubSearch({
     username: selectedUsername,
     enabled: !!selectedUsername,
   });
-
-  // Handle compare inputs validation change - no need to store this state
-  // as it's only used in the CompareSection component
-  const handleCompareInputChange = (hasValidInputs: boolean) => {
-    // We don't need to do anything with this state at the parent level
-  };
 
   const handleNavLinkClick = (view: string) => {
     if (
@@ -112,9 +99,7 @@ function HomeContent() {
       case "history":
         return <HistorySection onSelectUser={handleSelectUser} />;
       case "compare":
-        return (
-          <CompareSection onCompare={handleCompare} onUserInputChange={handleCompareInputChange} />
-        );
+        return <CompareSection onCompare={handleCompare} />;
       case "profile":
         return (
           <div className="flex flex-col h-full">
@@ -151,7 +136,7 @@ function HomeContent() {
                 Back
               </button>
               <h2 className="text-lg font-semibold">Comparison Results</h2>
-              <div className="w-10"></div> {/* Empty div for flex justification */}
+              <div className="w-10"></div>
             </div>
             <div className="flex-1 overflow-y-auto">
               <CompareResults />

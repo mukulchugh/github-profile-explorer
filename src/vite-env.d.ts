@@ -1,13 +1,13 @@
 /// <reference types="vite/client" />
 
 // Define module augmentation for dynamic imports
-declare module 'virtual:*' {
+declare module "virtual:*" {
   const module: any;
   export default module;
 }
 
 // Add support for dynamic imports in react-router-dom
-declare module '*?lazy' {
+declare module "*?lazy" {
   const Component: React.ComponentType<any>;
   export default Component;
 }

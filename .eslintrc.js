@@ -2,11 +2,10 @@ module.exports = {
   root: true,
   extends: [
     "eslint:recommended",
-    // Fix the plugin name to match the package
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "prettier"
+    "prettier",
   ],
   plugins: ["react", "react-hooks", "@typescript-eslint", "prettier"],
   parser: "@typescript-eslint/parser",
@@ -14,20 +13,20 @@ module.exports = {
     ecmaVersion: 2022,
     sourceType: "module",
     ecmaFeatures: {
-      jsx: true
+      jsx: true,
     },
-    project: ["./tsconfig.json"]
+    project: ["./tsconfig.json"],
   },
   settings: {
     react: {
-      version: "19.0"
-    }
+      version: "19.0",
+    },
   },
   rules: {
     "prettier/prettier": "error",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
   },
-  ignorePatterns: [".eslintrc.js", "vite.config.ts", "dist/", "node_modules/", ".vite/"]
+  ignorePatterns: [".eslintrc.js", "vite.config.ts", "dist/", "node_modules/", ".vite/"],
 };

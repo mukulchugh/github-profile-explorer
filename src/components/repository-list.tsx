@@ -1,8 +1,7 @@
+import { useGitHubRepositories } from "@/hooks/use-github-repositories";
 import { useMobile } from "@/hooks/use-mobile";
-import { githubApi, GitHubRepository } from "@/lib/api";
-import { DEFAULT_GC_TIME, DEFAULT_RETRY_COUNT, DEFAULT_STALE_TIME } from "@/lib/constants";
-import { QUERY_KEYS } from "@/lib/query-client";
-import { formatDate } from "@/lib/utils";
+import { GitHubRepository } from "@/lib/api";
+import { cn, formatDate } from "@/lib/utils";
 import {
   IconCode,
   IconExternalLink,
@@ -11,7 +10,6 @@ import {
   IconStar,
   IconUser,
 } from "@tabler/icons-react";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { EmptyState } from "./empty-state";
 import { LoadMoreButton } from "./load-more-button";
@@ -32,164 +30,115 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useMobile();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } =
-    useInfiniteQuery({
-      queryKey: [QUERY_KEYS.REPOSITORIES, username],
-      queryFn: async ({ pageParam = 1 }) => {
-        if (!username?.trim()) {
-          console.warn("Attempted to fetch repositories with empty username");
-          return [];
-        }
-
-        try {
-          const repos = await githubApi.getUserRepos(username, pageParam, pageSize);
-
-          return repos;
-        } catch (error) {
-          console.error(`Error fetching repositories for ${username}:`, error);
-          throw error;
-        }
-      },
-      initialPageParam: 1,
+  const { repositories, isLoading, error, hasMore, loadMore, isLoadingMore, filterRepositories } =
+    useGitHubRepositories({
+      username: username || "",
+      pageSize,
       enabled: !!username?.trim(),
-      staleTime: DEFAULT_STALE_TIME,
-      gcTime: DEFAULT_GC_TIME,
-      retry: DEFAULT_RETRY_COUNT,
-      getNextPageParam: (lastPage, allPages) => {
-        return lastPage.length === pageSize ? allPages.length + 1 : undefined;
-      },
     });
 
   // Apply filters to repositories
-  const filteredRepositories = data?.pages.flat().filter((repo) => {
-    // If no filters active, show all
-    if (activeFilters.length === 0) return true;
+  const filteredRepositories =
+    activeFilters.length > 0
+      ? filterRepositories((repo) => {
+          if (activeFilters.includes("starred") && repo.stargazers_count > 0) return true;
+          if (activeFilters.includes("forked") && repo.fork) return true;
+          return false;
+        })
+      : repositories;
 
-    if (activeFilters.includes("starred") && repo.stargazers_count > 0) return true;
-    if (activeFilters.includes("forked") && repo.fork) return true;
-    if (activeFilters.includes("personal") && !repo.fork) return true;
+  const toggleFilter = (value: string) => {
+    setActiveFilters((prev) => {
+      if (prev.includes(value)) {
+        return prev.filter((v) => v !== value);
+      } else {
+        return [...prev, value];
+      }
+    });
+  };
 
-    return false;
-  });
-
-  if (isLoading) {
+  if (isLoading && filteredRepositories.length === 0) {
     return (
-      <Card className={className}>
-        <CardContent className="flex justify-center items-center py-20">
-          <Spinner />
-        </CardContent>
-      </Card>
+      <div className="p-8 text-center">
+        <Spinner />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className={className}>
-        <CardContent className="py-10 text-center">
-          <p className="text-red-500 mb-2">Error loading repositories</p>
-          <p className="text-sm text-muted-foreground">
-            {error instanceof Error ? error.message : "Unknown error"}
-          </p>
-        </CardContent>
-      </Card>
+      <div className="p-8 text-center">
+        <h2 className="text-lg font-semibold text-destructive mb-2">Error</h2>
+        <p className="text-muted-foreground">{error}</p>
+      </div>
     );
   }
 
-  const repositories = data?.pages.flat() || [];
-
-  if (repositories.length === 0) {
+  if (!username) {
     return (
       <EmptyState
-        title="No repositories found"
-        description={`${username} doesn't have any public repositories yet.`}
-        className={className}
-        icon={IconCode}
+        icon={IconUser}
+        title="No user selected"
+        description="Select a user to view their repositories."
       />
     );
   }
 
-  // Count repositories by type for filter badges
-  const repoStats = repositories.reduce(
-    (stats, repo) => {
-      if (repo.stargazers_count > 0) stats.starred++;
-      if (repo.fork) stats.forked++;
-      else stats.personal++;
-      return stats;
-    },
-    { starred: 0, forked: 0, personal: 0 }
-  );
+  if (repositories.length === 0) {
+    return (
+      <EmptyState
+        icon={IconUser}
+        title="No repositories found"
+        description={`${username} doesn't have any public repositories yet.`}
+      />
+    );
+  }
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {/* Filter controls - adapted for mobile */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <h2 className="text-xl font-semibold flex items-center">
-          Repositories{" "}
-          <span className="text-sm font-normal text-muted-foreground ml-1">
-            ({repositories.length})
-          </span>
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="ml-auto"
-            >
-              <IconFilter className="h-4 w-4 mr-2" />
-              {showFilters ? "Hide Filters" : "Show Filters"}
-            </Button>
-          )}
-        </h2>
+    <div className={cn("space-y-4", className)}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Repositories ({repositories.length})</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          <IconFilter className="h-4 w-4" />
+          {showFilters ? "Hide Filters" : "Show Filters"}
+        </Button>
+      </div>
 
-        {(!isMobile || showFilters) && (
-          <div className="flex items-center border border-gray-200 rounded-md px-4 py-1 w-full sm:w-auto">
-            <IconFilter className="h-4 w-4 text-muted-foreground mr-2" />
-            <ToggleGroup
-              type="multiple"
-              value={activeFilters}
-              onValueChange={(value) => setActiveFilters(value)}
-              className="flex flex-wrap gap-1"
-            >
+      {showFilters && (
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <h3 className="text-sm font-medium mb-2">Filter by:</h3>
+            <ToggleGroup type="multiple" variant="outline" className="justify-start">
               <ToggleGroupItem
                 value="starred"
-                aria-label="Toggle starred repositories"
-                className="flex gap-1 text-xs"
+                aria-label="Filter by starred"
+                className="gap-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                data-state={activeFilters.includes("starred") ? "on" : "off"}
+                onClick={() => toggleFilter("starred")}
               >
-                <IconStar className="h-3.5 w-3.5" />
-                Starred
-                <Badge variant="outline" className="ml-1 text-xs px-1">
-                  {repoStats.starred}
-                </Badge>
+                <IconStar className="h-4 w-4" />
+                <span className="hidden md:inline">Starred</span>
               </ToggleGroupItem>
               <ToggleGroupItem
                 value="forked"
-                aria-label="Toggle forked repositories"
-                className="flex gap-1 text-xs"
+                aria-label="Filter by forked"
+                className="gap-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                data-state={activeFilters.includes("forked") ? "on" : "off"}
+                onClick={() => toggleFilter("forked")}
               >
-                <IconGitFork className="h-3.5 w-3.5" />
-                Forked
-                <Badge variant="outline" className="ml-1 text-xs px-1">
-                  {repoStats.forked}
-                </Badge>
-              </ToggleGroupItem>
-
-              <ToggleGroupItem
-                value="personal"
-                aria-label="Toggle personal repositories"
-                className="flex gap-1 text-xs"
-              >
-                <IconUser className="h-3.5 w-3.5" />
-                Personal
-                <Badge variant="outline" className="ml-1 text-xs px-1">
-                  {repoStats.personal}
-                </Badge>
+                <IconGitFork className="h-4 w-4" />
+                <span className="hidden md:inline">Forked</span>
               </ToggleGroupItem>
             </ToggleGroup>
-          </div>
-        )}
-      </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Repository list */}
       <div className="space-y-4">
         {filteredRepositories && filteredRepositories.length > 0 ? (
           filteredRepositories.map((repo) => (
@@ -197,23 +146,17 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
           ))
         ) : (
           <Card>
-            <CardContent className="py-10 text-center">
-              <p className="text-muted-foreground">No repositories match the selected filters</p>
-              <Button variant="outline" className="mt-4" onClick={() => setActiveFilters([])}>
-                Clear Filters
-              </Button>
+            <CardContent className="p-8 text-center">
+              <p className="text-muted-foreground">No repositories match the selected filters.</p>
             </CardContent>
           </Card>
         )}
       </div>
 
-      {hasNextPage && filteredRepositories && filteredRepositories.length > 0 && (
-        <LoadMoreButton
-          onClick={() => fetchNextPage()}
-          isLoading={isFetchingNextPage}
-          hasMore={hasNextPage}
-          className="w-full"
-        />
+      {hasMore && (
+        <div className="py-4 text-center">
+          <LoadMoreButton onClick={loadMore} isLoading={isLoadingMore} hasMore={hasMore} />
+        </div>
       )}
     </div>
   );
@@ -231,50 +174,74 @@ function RepositoryCard({ repo, isMobile }: RepositoryCardProps) {
     <Card>
       <CardHeader className="p-4 pb-2">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg font-semibold truncate mr-2">{repo.name}</CardTitle>
-          <Button variant="ghost" size="icon" asChild>
-            <a href={repo.html_url} target="_blank" rel="noreferrer" aria-label="Open repository">
-              <IconExternalLink className="h-4 w-4" />
-            </a>
-          </Button>
+          <div className="space-y-1 mr-2">
+            <CardTitle className="text-md">
+              <div className="flex items-center space-x-1">
+                <a
+                  href={repo.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline truncate"
+                >
+                  {repo.name}
+                </a>
+                <a
+                  href={repo.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground ml-1"
+                >
+                  <IconExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </CardTitle>
+            {repo.description && (
+              <p className="text-sm text-muted-foreground line-clamp-2">{repo.description}</p>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            {repo.fork && (
+              <div className="flex items-center text-xs">
+                <IconGitFork className="h-3 w-3 mr-1 text-muted-foreground" />
+                <span className="text-muted-foreground">Fork</span>
+              </div>
+            )}
+            {!isMobile && repo.stargazers_count > 0 && (
+              <div className="flex items-center text-xs">
+                <IconStar className="h-3 w-3 mr-1 text-amber-500" />
+                <span>{repo.stargazers_count}</span>
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="p-4 pt-2 space-y-3">
-        {repo.description && (
-          <p className="text-muted-foreground text-sm line-clamp-2">{repo.description}</p>
-        )}
-
-        {topics.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {topics.slice(0, isMobile ? 2 : 3).map((topic: string) => (
+      <CardContent className="p-4 pt-0">
+        <div className="flex flex-wrap mt-2 items-center justify-between">
+          <div className="flex flex-wrap gap-1 max-w-[80%]">
+            {repo.language && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <IconCode className="h-3 w-3" />
+                {repo.language}
+              </Badge>
+            )}
+            {isMobile && repo.stargazers_count > 0 && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <IconStar className="h-3 w-3 text-amber-500" />
+                {repo.stargazers_count}
+              </Badge>
+            )}
+            {topics.slice(0, isMobile ? 1 : 3).map((topic) => (
               <Badge key={topic} variant="secondary" className="text-xs">
                 {topic}
               </Badge>
             ))}
-            {topics.length > (isMobile ? 2 : 3) && (
-              <Badge variant="outline" className="text-xs">
-                +{topics.length - (isMobile ? 2 : 3)} more
+            {topics.length > (isMobile ? 1 : 3) && (
+              <Badge variant="secondary" className="text-xs">
+                +{topics.length - (isMobile ? 1 : 3)} more
               </Badge>
             )}
           </div>
-        )}
-
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-          {repo.language && (
-            <div className="flex items-center gap-1">
-              <IconCode className="h-4 w-4" />
-              {repo.language}
-            </div>
-          )}
-          <div className="flex items-center gap-1">
-            <IconStar className="h-4 w-4" />
-            {repo.stargazers_count}
-          </div>
-          <div className="flex items-center gap-1">
-            <IconGitFork className="h-4 w-4" />
-            {repo.forks_count}
-          </div>
-          <div className="text-xs">Updated {formatDate(repo.updated_at)}</div>
+          <div className="text-xs text-muted-foreground">{formatDate(repo.updated_at)}</div>
         </div>
       </CardContent>
     </Card>

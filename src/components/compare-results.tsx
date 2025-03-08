@@ -30,7 +30,6 @@ export function CompareResults(): React.ReactElement {
     );
   }
 
-  // Handle no usernames or not enough valid results
   if (!compareUsernames?.length || users.length < 2) {
     return (
       <EmptyState
@@ -41,7 +40,6 @@ export function CompareResults(): React.ReactElement {
     );
   }
 
-  // Handle errors
   if (hasErrors && users.length === 0) {
     return (
       <EmptyState
@@ -52,7 +50,6 @@ export function CompareResults(): React.ReactElement {
     );
   }
 
-  // Find the maximum values for the stats
   const maxRepos = Math.max(...users.map((u) => u.public_repos));
   const maxFollowers = Math.max(...users.map((u) => u.followers));
   const maxGists = Math.max(...users.map((u) => u.public_gists));

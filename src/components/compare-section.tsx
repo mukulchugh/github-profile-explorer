@@ -4,14 +4,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useViewControl } from "@/hooks/use-view-control";
 import { IconGitCompare, IconPlus, IconTrash } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface CompareSectionProps {
   onCompare?: (usernames: string[]) => void;
-  onUserInputChange?: (hasValidInputs: boolean) => void;
 }
 
-export function CompareSection({ onCompare, onUserInputChange }: CompareSectionProps) {
+export function CompareSection({ onCompare }: CompareSectionProps) {
   const [userInputs, setUserInputs] = useState<string[]>(["", ""]);
   const { setCompareUsernames } = useViewControl();
 
@@ -45,10 +44,6 @@ export function CompareSection({ onCompare, onUserInputChange }: CompareSectionP
   };
 
   const canCompare = userInputs.filter((u) => u.trim()).length >= 2;
-
-  useEffect(() => {
-    onUserInputChange?.(canCompare);
-  }, [canCompare, onUserInputChange]);
 
   return (
     <div className="space-y-6">

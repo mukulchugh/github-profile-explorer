@@ -24,39 +24,30 @@ export function useLocalStorage<T>(
   key: string,
   initialValue: T
 ): [T, Dispatch<SetStateAction<T>>, () => void, () => void, boolean] {
-  // Check if localStorage is available early
   const storageAvailable = isStorageAvailable();
 
-  // State to store our value
   const [storedValue, setStoredValue] = useState<T>(() => {
     if (!storageAvailable) {
       return initialValue;
     }
 
-    // Get from localStorage by key
     const item = getStorageItem<T>(key, initialValue);
     return item !== undefined ? item : initialValue;
   });
 
-  // Loading state
   const [isLoading, setIsLoading] = useState(true);
 
-  // Effect to synchronize state with localStorage
   useEffect(() => {
     setIsLoading(false);
   }, []);
 
-  // Handler for setting localStorage value
   const setValue: Dispatch<SetStateAction<T>> = useCallback(
     (value) => {
       try {
-        // Allow value to be a function like React's setState
         const valueToStore = value instanceof Function ? value(storedValue) : value;
 
-        // Save state
         setStoredValue(valueToStore);
 
-        // Save to localStorage
         if (storageAvailable) {
           setStorageItem(key, valueToStore);
         }
@@ -67,13 +58,10 @@ export function useLocalStorage<T>(
     [key, storedValue, storageAvailable]
   );
 
-  // Handler for removing the item from localStorage
   const removeValue = useCallback(() => {
     try {
-      // Reset state to initial value
       setStoredValue(initialValue);
 
-      // Remove from localStorage
       if (storageAvailable) {
         removeStorageItem(key);
       }
@@ -82,7 +70,6 @@ export function useLocalStorage<T>(
     }
   }, [key, initialValue, storageAvailable]);
 
-  // Handler for resetting to initial value
   const resetValue = useCallback(() => {
     try {
       setStoredValue(initialValue);
@@ -94,7 +81,6 @@ export function useLocalStorage<T>(
     }
   }, [key, initialValue, storageAvailable]);
 
-  // Listen for storage events from other tabs
   useEffect(() => {
     if (!storageAvailable) return;
 
@@ -109,10 +95,8 @@ export function useLocalStorage<T>(
       }
     };
 
-    // Add event listener
     window.addEventListener("storage", handleStorageChange);
 
-    // Remove event listener on cleanup
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
