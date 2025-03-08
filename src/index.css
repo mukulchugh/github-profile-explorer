@@ -1,10 +1,9 @@
-/* Import Tailwind CSS directives */
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400..800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400..800&display=swap");
 
-/* Your custom base styles */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -69,7 +68,6 @@
   }
 }
 
-/* Apply base styles */
 @layer base {
   * {
     @apply border-border;
@@ -84,14 +82,4 @@
       "rlig" 1,
       "calt" 1;
   }
-}
-
-/* Your custom component styles */
-@layer components {
-  /* Add any component styles here */
-}
-
-/* Your custom utility styles */
-@layer utilities {
-  /* Add any utility styles here */
 }

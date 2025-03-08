@@ -4,31 +4,13 @@ import { IconAlertTriangle, IconRefresh } from "@tabler/icons-react";
 import { Component, ErrorInfo, ReactNode } from "react";
 
 interface ErrorBoundaryProps {
-  /**
-   * The children to render
-   */
   children: ReactNode;
-
-  /**
-   * Optional custom fallback component
-   */
   fallback?: ReactNode;
-
-  /**
-   * Optional callback when an error occurs
-   */
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface ErrorBoundaryState {
-  /**
-   * Whether an error has occurred
-   */
   hasError: boolean;
-
-  /**
-   * The error that occurred
-   */
   error: Error | null;
 }
 
@@ -46,7 +28,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Update state so the next render will show the fallback UI
     return {
       hasError: true,
       error,
@@ -54,10 +35,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log the error to the console
     console.error("Error caught by ErrorBoundary:", error, errorInfo);
 
-    // Call the onError callback if provided
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
@@ -72,12 +51,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render(): ReactNode {
     if (this.state.hasError) {
-      // Custom fallback UI if provided
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
-      // Default fallback UI
       return (
         <div className="w-full h-full flex items-center justify-center p-6">
           <EmptyState
@@ -95,7 +72,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       );
     }
 
-    // Render children if there's no error
     return this.props.children;
   }
 }

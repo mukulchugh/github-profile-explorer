@@ -23,7 +23,7 @@ export function useGitHubFollowers(
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<GitHubUser[], Error>({
       queryKey,
-      queryFn: ({ pageParam }) => fetchFn(pageParam),
+      queryFn: ({ pageParam }) => fetchFn(pageParam as number),
       enabled: enabled && Boolean(username?.trim()),
       initialPageParam: 1,
       staleTime: 1000 * 60 * 10, // 10 minutes

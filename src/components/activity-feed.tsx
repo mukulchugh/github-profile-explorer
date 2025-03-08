@@ -9,6 +9,7 @@ import {
 } from "@tabler/icons-react";
 import { format } from "date-fns";
 import { LoadMoreButton } from "./load-more-button";
+import { Spinner } from "./ui/spinner";
 
 interface ActivityFeedProps {
   events: GitHubEvent[];
@@ -25,7 +26,6 @@ export function ActivityFeed({
   onLoadMore,
   emptyMessage,
 }: ActivityFeedProps) {
-  // Helper to get icon for event type
   const getEventIcon = (eventType: string) => {
     switch (eventType) {
       case "PushEvent":
@@ -43,7 +43,6 @@ export function ActivityFeed({
     }
   };
 
-  // Helper to get description for event
   const getEventDescription = (event: GitHubEvent) => {
     const repoName = event.repo.name;
 
@@ -96,8 +95,8 @@ export function ActivityFeed({
 
   if (isLoading && events.length === 0) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+      <div className="flex justify-center items-center pb-12">
+        <Spinner />
       </div>
     );
   }

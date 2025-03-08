@@ -1,3 +1,4 @@
+import { useMobile } from "@/hooks/use-mobile";
 import { githubApi, GitHubRepository } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import {
@@ -25,6 +26,8 @@ interface RepositoryListProps {
 export function RepositoryList({ username, className }: RepositoryListProps) {
   const [pageSize] = useState(10);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const isMobile = useMobile();
 
   // Debug logging
   useEffect(() => {
@@ -100,6 +103,7 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
         title="No repositories found"
         description={`${username} doesn't have any public repositories yet.`}
         className={className}
+        icon={IconCode}
       />
     );
   }
@@ -117,57 +121,72 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Filter controls */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
+      {/* Filter controls - adapted for mobile */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h2 className="text-xl font-semibold flex items-center">
           Repositories{" "}
-          <span className="text-sm font-normal text-muted-foreground">({repositories.length})</span>
+          <span className="text-sm font-normal text-muted-foreground ml-1">
+            ({repositories.length})
+          </span>
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="ml-auto"
+            >
+              <IconFilter className="h-4 w-4 mr-2" />
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </Button>
+          )}
         </h2>
 
-        <div className="flex items-center gap-2  border border-gray-200 rounded-md px-4 py-1">
-          <IconFilter className="h-4 w-4 text-muted-foreground" />
-          <ToggleGroup
-            type="multiple"
-            value={activeFilters}
-            onValueChange={(value) => setActiveFilters(value)}
-            className="flex flex-wrap gap-1"
-          >
-            <ToggleGroupItem
-              value="starred"
-              aria-label="Toggle starred repositories"
-              className="flex gap-1 text-xs"
+        {(!isMobile || showFilters) && (
+          <div className="flex items-center border border-gray-200 rounded-md px-4 py-1 w-full sm:w-auto">
+            <IconFilter className="h-4 w-4 text-muted-foreground mr-2" />
+            <ToggleGroup
+              type="multiple"
+              value={activeFilters}
+              onValueChange={(value) => setActiveFilters(value)}
+              className="flex flex-wrap gap-1"
             >
-              <IconStar className="h-3.5 w-3.5" />
-              Starred
-              <Badge variant="outline" className="ml-1 text-xs px-1">
-                {repoStats.starred}
-              </Badge>
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="forked"
-              aria-label="Toggle forked repositories"
-              className="flex gap-1 text-xs"
-            >
-              <IconGitFork className="h-3.5 w-3.5" />
-              Forked
-              <Badge variant="outline" className="ml-1 text-xs px-1">
-                {repoStats.forked}
-              </Badge>
-            </ToggleGroupItem>
+              <ToggleGroupItem
+                value="starred"
+                aria-label="Toggle starred repositories"
+                className="flex gap-1 text-xs"
+              >
+                <IconStar className="h-3.5 w-3.5" />
+                Starred
+                <Badge variant="outline" className="ml-1 text-xs px-1">
+                  {repoStats.starred}
+                </Badge>
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="forked"
+                aria-label="Toggle forked repositories"
+                className="flex gap-1 text-xs"
+              >
+                <IconGitFork className="h-3.5 w-3.5" />
+                Forked
+                <Badge variant="outline" className="ml-1 text-xs px-1">
+                  {repoStats.forked}
+                </Badge>
+              </ToggleGroupItem>
 
-            <ToggleGroupItem
-              value="personal"
-              aria-label="Toggle personal repositories"
-              className="flex gap-1 text-xs"
-            >
-              <IconUser className="h-3.5 w-3.5" />
-              Personal
-              <Badge variant="outline" className="ml-1 text-xs px-1">
-                {repoStats.personal}
-              </Badge>
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+              <ToggleGroupItem
+                value="personal"
+                aria-label="Toggle personal repositories"
+                className="flex gap-1 text-xs"
+              >
+                <IconUser className="h-3.5 w-3.5" />
+                Personal
+                <Badge variant="outline" className="ml-1 text-xs px-1">
+                  {repoStats.personal}
+                </Badge>
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        )}
       </div>
 
       {/* Repository list */}
@@ -203,7 +222,7 @@ interface RepositoryCardProps {
 }
 
 function RepositoryCard({ repo }: RepositoryCardProps) {
-  // Get topics from real repo data instead of mock data
+  const isMobile = useMobile();
   const topics = repo.topics || [];
 
   return (
@@ -223,17 +242,16 @@ function RepositoryCard({ repo }: RepositoryCardProps) {
           <p className="text-muted-foreground text-sm line-clamp-2">{repo.description}</p>
         )}
 
-        {/* Use real topics from the repository */}
         {topics.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {topics.slice(0, 3).map((topic: string) => (
+            {topics.slice(0, isMobile ? 2 : 3).map((topic: string) => (
               <Badge key={topic} variant="secondary" className="text-xs">
                 {topic}
               </Badge>
             ))}
-            {topics.length > 3 && (
+            {topics.length > (isMobile ? 2 : 3) && (
               <Badge variant="outline" className="text-xs">
-                +{topics.length - 3} more
+                +{topics.length - (isMobile ? 2 : 3)} more
               </Badge>
             )}
           </div>

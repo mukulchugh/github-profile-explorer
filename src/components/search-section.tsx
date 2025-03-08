@@ -204,7 +204,8 @@ export function SearchSection({
         addToHistory={addToHistory}
       />
 
-      {renderContent()}
+      {/* Add responsive classes to handle different screen sizes */}
+      <div className="flex-1 overflow-y-auto">{renderContent()}</div>
     </div>
   );
 }

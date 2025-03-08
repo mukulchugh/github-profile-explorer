@@ -2,16 +2,13 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSearchHistory } from "@/hooks/use-search-history";
-import { useViewControl } from "@/hooks/use-view-control";
+import { useViewControl } from "@/hooks/use-view-control-hook";
 import { IconClockHour3, IconTrash } from "@tabler/icons-react";
 import { useCallback, useState } from "react";
 import { LoadMoreButton } from "./load-more-button";
 import { UserProfileCard } from "./user-profile-card";
 
 interface HistorySectionProps {
-  /**
-   * Callback when a user is selected from history
-   */
   onSelectUser?: (username: string) => void;
 }
 

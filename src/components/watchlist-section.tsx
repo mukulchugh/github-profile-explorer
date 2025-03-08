@@ -2,7 +2,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useWatchList } from "@/hooks/use-watch-list";
-import { IconBookmark, IconTrash } from "@tabler/icons-react";
+import { IconBookmark, IconEye, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { UserProfileCard } from "./user-profile-card";
@@ -56,8 +56,10 @@ export function WatchlistSection({ onSelectUser }: WatchlistSectionProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Watched Users ({watchedUsers.length})</h2>
-
+        <div className="flex items-center gap-2">
+          <IconEye className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold">Watched Users ({watchedUsers.length})</h2>
+        </div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

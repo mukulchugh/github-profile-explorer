@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useGitHubCompare } from "@/hooks/use-github-compare";
-import { useViewControl } from "@/hooks/use-view-control";
+import { useViewControl } from "@/hooks/use-view-control-hook";
 import { GitHubUser } from "@/lib/api";
 import {
   IconBuilding,
@@ -13,6 +13,7 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { format } from "date-fns";
+import { Spinner } from "./ui/spinner";
 
 export function CompareResults() {
   const { compareUsernames } = useViewControl();
@@ -21,7 +22,7 @@ export function CompareResults() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        <Spinner />
       </div>
     );
   }

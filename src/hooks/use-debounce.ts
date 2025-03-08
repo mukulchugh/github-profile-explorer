@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * A hook that debounces a value
@@ -22,4 +22,41 @@ export function useDebounce<T>(value: T, delay: number = 500): T {
   }, [value, delay]);
 
   return debouncedValue;
+}
+
+/**
+ * A hook that returns a debounced version of the provided callback function
+ * @param callback The function to debounce
+ * @param delay The delay in milliseconds
+ * @returns The debounced function
+ */
+export function useDebounceCallback<Args extends unknown[], Return>(
+  callback: (...args: Args) => Return,
+  delay: number = 500
+): (...args: Args) => void {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedCallback = useCallback(
+    (...args: Args) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay]
+  );
+
+  // Clean up the timeout when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return debouncedCallback;
 }

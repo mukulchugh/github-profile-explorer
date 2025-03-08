@@ -85,19 +85,6 @@ export function OrganizationsList({
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <IconBuildingCommunity className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
         <p className="text-muted-foreground mb-4">{emptyMessage}</p>
-
-        {/* Add refresh button */}
-        <button
-          onClick={() => {
-            console.log("Manual refresh clicked");
-            setRetryCount((prev) => prev + 1);
-            onRetry?.();
-          }}
-          className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-md flex items-center gap-2 transition-colors"
-        >
-          <IconRefresh size={16} />
-          Refresh Organizations
-        </button>
       </div>
     );
   }

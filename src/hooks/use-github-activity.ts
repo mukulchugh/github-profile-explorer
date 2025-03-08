@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
-import { githubApi, GitHubContribution } from "@/lib/api";
+import { githubApi } from "@/lib/api";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
@@ -7,13 +7,6 @@ interface UseGitHubActivityOptions {
   username: string;
   enabled?: boolean;
   perPage?: number;
-}
-
-interface UseGitHubActivityResult {
-  contributions: GitHubContribution[];
-  isLoading: boolean;
-  error: Error | null;
-  refetch: () => void;
 }
 
 /**

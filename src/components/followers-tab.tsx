@@ -2,6 +2,7 @@ import { useGitHubFollowers } from "@/hooks/use-github-followers";
 import { IconUserCircle } from "@tabler/icons-react";
 import { EmptyState } from "./empty-state";
 import { LoadMoreButton } from "./load-more-button";
+import { Spinner } from "./ui/spinner";
 import { UserProfileCard } from "./user-profile-card";
 
 interface FollowersTabProps {
@@ -20,7 +21,7 @@ export function FollowersTab({ username, type, onSelectUser }: FollowersTabProps
   if (isLoading && users.length === 0) {
     return (
       <div className="p-8 text-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"></div>
+        <Spinner />
       </div>
     );
   }

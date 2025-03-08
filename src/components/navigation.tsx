@@ -10,7 +10,7 @@ interface NavProps {
     label?: string;
     icon: TablerIcon;
     variant: "default" | "ghost";
-    onClick?: () => void; // Added onClick handler for view navigation
+    onClick?: () => void;
   }[];
 }
 

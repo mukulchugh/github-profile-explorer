@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { IconLoader2 } from "@tabler/icons-react";
+import { Spinner } from "./ui/spinner";
 
 interface LoadMoreButtonProps {
   onClick: () => void;
@@ -16,10 +16,10 @@ export function LoadMoreButton({ onClick, isLoading, hasMore, className }: LoadM
     <div className={cn("flex justify-center py-4", className)}>
       <Button variant="outline" onClick={onClick} disabled={isLoading} className="min-w-[120px]">
         {isLoading ? (
-          <>
-            <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+          <span className="flex items-center gap-2">
+            <Spinner size="small" />
             Loading...
-          </>
+          </span>
         ) : (
           "Load More"
         )}

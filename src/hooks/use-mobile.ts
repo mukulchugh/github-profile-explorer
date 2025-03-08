@@ -1,19 +1,28 @@
-import * as React from "react";
+import { useEffect, useState } from "react";
 
-const MOBILE_BREAKPOINT = 768;
+/**
+ * A hook that detects if the current viewport is mobile size
+ * @param breakpoint The width in pixels below which to consider as mobile (default: 768px)
+ * @returns A boolean indicating if the viewport is mobile size
+ */
+export function useMobile(breakpoint: number = 768): boolean {
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
-
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+  useEffect(() => {
+    // Initialize with current window size
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < breakpoint);
     };
-    mql.addEventListener("change", onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
 
-  return !!isMobile;
+    // Check initially
+    checkIfMobile();
+
+    // Add event listener
+    window.addEventListener("resize", checkIfMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, [breakpoint]);
+
+  return isMobile;
 }

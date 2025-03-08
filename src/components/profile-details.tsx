@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserProfileCard } from "@/components/user-profile-card";
 import { useGitHubActivity } from "@/hooks/use-github-activity";
-
 import { useGitHubOrganizations } from "@/hooks/use-github-organizations";
 import { useWatchList } from "@/hooks/use-watch-list";
+
 import { GitHubUser } from "@/lib/api";
 import {
   IconBook,
@@ -89,7 +89,6 @@ export function ProfileDetails({
     );
   }
 
-  // Sample language data
   const languageData = [
     { name: "JavaScript", value: 40 },
     { name: "TypeScript", value: 30 },
@@ -100,7 +99,6 @@ export function ProfileDetails({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* User Profile Card */}
       <UserProfileCard
         user={userDetails}
         onAddToWatchlist={handleWatchlistToggle}
@@ -141,9 +139,7 @@ export function ProfileDetails({
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab content for Overview */}
         <TabsContent value="overview" className="mt-6 space-y-6">
-          {/* GitHub-style Contribution Graph */}
           <Card className="p-6">
             <CardHeader className="px-0 pt-0">
               <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -160,7 +156,6 @@ export function ProfileDetails({
             </CardContent>
           </Card>
 
-          {/* Language Distribution */}
           <Card className="p-6">
             <CardHeader className="px-0 pt-0">
               <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -176,12 +171,10 @@ export function ProfileDetails({
           </Card>
         </TabsContent>
 
-        {/* Tab content for Repositories */}
         <TabsContent value="repositories" className="mt-6">
           <RepositoryList username={userDetails.login} />
         </TabsContent>
 
-        {/* Tab content for Activity */}
         <TabsContent value="activity" className="mt-6">
           <Card className="p-6">
             <CardHeader className="px-0 pt-0">
@@ -202,7 +195,6 @@ export function ProfileDetails({
           </Card>
         </TabsContent>
 
-        {/* Tab content for Organizations */}
         <TabsContent value="organizations" className="mt-6">
           <Card className="p-6">
             <CardHeader className="px-0 pt-0">
@@ -223,12 +215,9 @@ export function ProfileDetails({
           </Card>
         </TabsContent>
 
-        {/* Tab content for Followers */}
         <TabsContent value="followers" className="mt-6">
           <FollowersTab username={userDetails.login} type="followers" onSelectUser={onSelectUser} />
         </TabsContent>
-
-        {/* Tab content for Following */}
 
         <TabsContent value="following" className="mt-6">
           <FollowersTab username={userDetails.login} type="following" onSelectUser={onSelectUser} />

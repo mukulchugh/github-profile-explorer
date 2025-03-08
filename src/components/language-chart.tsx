@@ -11,16 +11,16 @@ interface LanguageChartProps {
 }
 
 const COLORS = [
-  "#3b82f6", // Blue for JavaScript
-  "#8b5cf6", // Purple for TypeScript
-  "#22c55e", // Green for Python
-  "#f59e0b", // Amber for HTML
-  "#ef4444", // Red for CSS
-  "#06b6d4", // Cyan for Go
-  "#ec4899", // Pink for Ruby
-  "#64748b", // Slate for C/C++
-  "#84cc16", // Lime for Java
-  "#a855f7", // Violet for PHP
+  "#3b82f6",
+  "#8b5cf6",
+  "#22c55e",
+  "#f59e0b",
+  "#ef4444",
+  "#06b6d4",
+  "#ec4899",
+  "#64748b",
+  "#84cc16",
+  "#a855f7",
 ];
 
 export function LanguageChart({ data }: LanguageChartProps) {

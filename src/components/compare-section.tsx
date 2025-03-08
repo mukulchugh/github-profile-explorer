@@ -2,7 +2,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useViewControl } from "@/hooks/use-view-control";
+import { useViewControl } from "@/hooks/use-view-control-hook";
 import { IconGitCompare, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 

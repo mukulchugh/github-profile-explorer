@@ -1,7 +1,6 @@
 import { GitHubUser } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import {
-  IconBrandTwitter,
   IconBuilding,
   IconChevronRight,
   IconExternalLink,
@@ -11,7 +10,6 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
 import { Button, buttonVariants } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 
@@ -48,56 +46,45 @@ export function UserProfileCard({
   // Compact variant for watchlist
   if (variant === "compact") {
     return (
-      <Card className={cn("overflow-hidden hover:shadow-md transition-shadow", className)}>
-        <div className="flex items-center p-4">
-          <Avatar className="h-10 w-10 mr-4">
-            <AvatarImage src={user?.avatar_url} alt={user?.login} />
-            <AvatarFallback>{user?.login?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
-          </Avatar>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base truncate">
-                {user?.name || user?.login || "Unknown User"}
-              </CardTitle>
-              {user?.public_repos > 0 && (
-                <Badge variant="secondary" className="ml-2 shrink-0">
-                  <IconBuilding className="h-4 w-4" /> {user.public_repos}
-                </Badge>
+      <Card className={cn("relative hover:shadow-md transition-shadow", className)}>
+        <CardContent className="p-3">
+          <div className="flex space-x-3 items-center">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user.avatar_url} alt={user.login} />
+              <AvatarFallback>
+                <IconUser />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-sm truncate">{user.login}</h3>
+              <p className="text-xs text-muted-foreground truncate">
+                Added {formatDate(user.created_at)}
+              </p>
+            </div>
+            <div className="flex items-center">
+              {onSelect && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => onSelect(user.login)}
+                >
+                  <IconChevronRight className="h-4 w-4" />
+                </Button>
+              )}
+              {onRemove && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive"
+                  onClick={() => onRemove(user.login)}
+                >
+                  <IconTrash className="h-4 w-4" />
+                </Button>
               )}
             </div>
           </div>
-
-          <div className="flex items-center ml-2 space-x-1">
-            {onSelect && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onSelect(user.login)}
-                className="shrink-0 ml-2"
-              >
-                <IconChevronRight className="h-4 w-4" />
-              </Button>
-            )}
-
-            {user?.html_url && (
-              <a
-                href={user.html_url}
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <IconExternalLink className="h-4 w-4" />
-              </a>
-            )}
-
-            {onRemove && (
-              <Button variant="destructive" size="sm" onClick={() => onRemove(user.login)}>
-                <IconTrash className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
+        </CardContent>
       </Card>
     );
   }
@@ -107,165 +94,158 @@ export function UserProfileCard({
     return (
       <Card
         className={cn(
-          "overflow-hidden hover:bg-accent/50 transition-colors cursor-pointer",
+          "overflow-hidden hover:shadow-md transition-shadow cursor-pointer",
           className
         )}
-        onClick={() => onSelect?.(user?.login || "")}
+        onClick={() => onSelect && onSelect(user.login)}
       >
-        <div className="flex items-center p-3">
-          <Avatar className="h-12 w-12 mr-4">
-            <AvatarImage src={user?.avatar_url} alt={user?.login} />
-            <AvatarFallback>{user?.login?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
-          </Avatar>
-
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-sm flex items-center">
-              {user?.name || user?.login || "Unknown User"}
-              {user?.name && (
-                <CardDescription className="ml-2 text-xs">@{user.login}</CardDescription>
-              )}
-            </CardTitle>
-
-            <div className="flex items-center mt-1 text-xs text-muted-foreground">
-              {user?.location && (
-                <div className="flex items-center mr-4">
-                  <IconMapPin className="h-3 w-3 mr-1" />
-                  <span className="truncate">{user.location}</span>
-                </div>
-              )}
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <Avatar className="h-12 w-12 flex-shrink-0">
+              <AvatarImage src={user.avatar_url} alt={user.login} />
+              <AvatarFallback>
+                <IconUser />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                <h3 className="font-semibold truncate">{user.login}</h3>
+                {user.name && user.name !== user.login && (
+                  <p className="text-sm text-muted-foreground truncate">({user.name})</p>
+                )}
+              </div>
+              {user.bio && <p className="text-sm mt-1 line-clamp-2">{user.bio}</p>}
+              <div className="flex flex-wrap mt-2 gap-2">
+                {user.location && (
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <IconMapPin className="h-3 w-3 mr-1" />
+                    <span className="truncate">{user.location}</span>
+                  </div>
+                )}
+                {user.company && (
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <IconBuilding className="h-3 w-3 mr-1" />
+                    <span className="truncate">{user.company}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-
-          <div className="ml-2 flex items-center space-x-2">
-            {onAddToWatchlist && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAddToWatchlist(user);
-                }}
-                className="shrink-0"
-              >
-                {isInWatchlist ? "Unwatch" : "Watch"}
-              </Button>
-            )}
-          </div>
-        </div>
+        </CardContent>
       </Card>
     );
   }
 
+  // Default (full) variant
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="flex flex-row items-center gap-4 pb-2">
-        <div className="h-16 w-16 rounded-full overflow-hidden">
-          {user?.avatar_url ? (
-            <img src={user.avatar_url} alt={user.login} className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full bg-muted flex items-center justify-center">
-              <IconUser className="h-8 w-8 text-muted-foreground" />
+    <Card className={cn("", className)}>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <Avatar className="h-16 w-16 flex-shrink-0">
+            <AvatarImage src={user.avatar_url} alt={user.login} />
+            <AvatarFallback>
+              <IconUser />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1">
+              <CardTitle className="text-xl">{user.login}</CardTitle>
+              {user.name && user.name !== user.login && (
+                <CardDescription className="ml-0 sm:ml-2 text-base">{user.name}</CardDescription>
+              )}
             </div>
-          )}
-        </div>
-        <div>
-          <CardTitle className="text-xl">{user?.name || user?.login || "Unknown User"}</CardTitle>
-          <CardDescription className="text-sm">
-            {user?.html_url ? (
-              <a
-                href={user.html_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-              >
-                @{user.login}
-              </a>
-            ) : (
-              <span>@{user?.login || "unknown"}</span>
-            )}
-          </CardDescription>
+            {user.bio && <p className="mt-1 text-sm">{user.bio}</p>}
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="text-sm">
-        {user?.bio && <p className="mb-4 text-muted-foreground">{user.bio}</p>}
+      <CardContent className="space-y-5">
+        {/* User stats section - make responsive grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="text-center p-2 bg-muted rounded-md flex flex-col justify-center items-center">
+            <span className="text-lg font-bold">{user.followers}</span>
+            <span className="text-xs text-muted-foreground">Followers</span>
+          </div>
+          <div className="text-center p-2 bg-muted rounded-md flex flex-col justify-center items-center">
+            <span className="text-lg font-bold">{user.following}</span>
+            <span className="text-xs text-muted-foreground">Following</span>
+          </div>
+          <div className="text-center p-2 bg-muted rounded-md flex flex-col justify-center items-center">
+            <span className="text-lg font-bold">{user.public_repos}</span>
+            <span className="text-xs text-muted-foreground">Repositories</span>
+          </div>
+          <div className="text-center p-2 bg-muted rounded-md flex flex-col justify-center items-center">
+            <span className="text-lg font-bold">{user.public_gists}</span>
+            <span className="text-xs text-muted-foreground">Gists</span>
+          </div>
+        </div>
 
-        <div className="flex gap-2">
-          {user?.company && (
-            <div className="flex items-center gap-1">
-              <IconBuilding className="h-4 w-4 text-muted-foreground" />
-              <span>{user.company}</span>
-            </div>
-          )}
-          {user?.location && (
-            <div className="flex items-center gap-1">
-              <IconMapPin className="h-4 w-4 text-muted-foreground" />
+        {/* User details section - stack on mobile */}
+        <div className="space-y-3">
+          {user.location && (
+            <div className="flex items-center">
+              <IconMapPin className="h-4 w-4 mr-2 text-muted-foreground" />
               <span>{user.location}</span>
             </div>
           )}
-          {user?.email && (
-            <div className="flex items-center gap-1">
-              <IconMail className="h-4 w-4 text-muted-foreground" />
-              <a href={`mailto:${user.email}`} className="hover:underline">
+          {user.company && (
+            <div className="flex items-center">
+              <IconBuilding className="h-4 w-4 mr-2 text-muted-foreground" />
+              <span>{user.company}</span>
+            </div>
+          )}
+          {user.email && (
+            <div className="flex items-center">
+              <IconMail className="h-4 w-4 mr-2 text-muted-foreground" />
+              <a href={`mailto:${user.email}`} className="text-primary hover:underline truncate">
                 {user.email}
               </a>
             </div>
           )}
-          {user?.blog && (
-            <div className="flex items-center gap-1">
-              <IconExternalLink className="h-4 w-4 text-muted-foreground" />
+          {user.blog && (
+            <div className="flex items-center">
+              <IconExternalLink className="h-4 w-4 mr-2 text-muted-foreground" />
               <a
                 href={user.blog.startsWith("http") ? user.blog : `https://${user.blog}`}
                 target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
+                rel="noreferrer"
+                className="text-primary hover:underline truncate"
               >
                 {user.blog}
               </a>
             </div>
           )}
-          {user?.twitter_username && (
-            <div className="flex items-center gap-1">
-              <IconBrandTwitter className="h-4 w-4 text-muted-foreground" />
-              <a href={`https://twitter.com/${user.twitter_username}`} className="hover:underline">
-                {user.twitter_username}
-              </a>
-            </div>
-          )}
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-4">
-          <div className="flex flex-col items-center justify-center rounded-md border p-3">
-            <div className="text-2xl font-bold">{user?.public_repos || 0}</div>
-            <div className="text-xs text-muted-foreground">Repositories</div>
+        <div className="flex flex-col space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Member since</span>
+            <span className="text-sm">{formatDate(user.created_at)}</span>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-md border p-3">
-            <div className="text-2xl font-bold">{user?.followers || 0}</div>
-            <div className="text-xs text-muted-foreground">Followers</div>
-          </div>
-          <div className="flex flex-col items-center justify-center rounded-md border p-3">
-            <div className="text-2xl font-bold">{user?.public_gists || 0}</div>
-            <div className="text-xs text-muted-foreground">Gists</div>
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <div className="text-xs text-muted-foreground">
-            Member since {formatDate(user?.created_at || "")}
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Last updated</span>
+            <span className="text-sm">{formatDate(user.updated_at)}</span>
           </div>
         </div>
       </CardContent>
-
-      {onAddToWatchlist && (
-        <CardFooter>
+      <CardFooter className="flex flex-col sm:flex-row gap-2 pt-0">
+        <a
+          href={user.html_url}
+          target="_blank"
+          rel="noreferrer"
+          className={cn(buttonVariants({ variant: "outline" }), "w-full sm:w-auto")}
+        >
+          View on GitHub
+        </a>
+        {onAddToWatchlist && (
           <Button
+            variant={isInWatchlist ? "destructive" : "default"}
             onClick={() => onAddToWatchlist(user)}
-            variant={isInWatchlist ? "outline" : "default"}
-            className="w-full"
+            className="w-full sm:w-auto"
           >
             {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
           </Button>
-        </CardFooter>
-      )}
+        )}
+      </CardFooter>
     </Card>
   );
 }
