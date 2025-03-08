@@ -1,3 +1,4 @@
+import { useToast } from "@/hooks/use-toast";
 import { GitHubUser } from "@/lib/api";
 import { useCallback } from "react";
 import { useLocalStorage } from "./use-local-storage";
@@ -40,6 +41,7 @@ export function useSearchHistory(): UseSearchHistoryReturn {
     STORAGE_KEY,
     []
   );
+  const { toast } = useToast();
 
   const validEnhancedHistory = Array.isArray(historyValue)
     ? historyValue.filter(
@@ -92,8 +94,13 @@ export function useSearchHistory(): UseSearchHistoryReturn {
   );
 
   const clearHistory = useCallback(() => {
-    setHistoryValue([]);
-  }, [setHistoryValue]);
+    if (confirm("Are you sure you want to clear all search history?")) {
+      setHistoryValue([]);
+      toast({
+        title: "History cleared",
+      });
+    }
+  }, [setHistoryValue, toast]);
 
   /**
    * Remove a specific search query from history
@@ -102,9 +109,11 @@ export function useSearchHistory(): UseSearchHistoryReturn {
   const removeFromHistory = useCallback(
     (query: string) => {
       setHistoryValue((prevHistory: SearchHistoryItem[]) => {
-        // Ensure prevHistory is an array
         const safeHistory = Array.isArray(prevHistory) ? prevHistory : [];
         return safeHistory.filter((item) => item.query !== query);
+      });
+      toast({
+        title: "Search history updated",
       });
     },
     [setHistoryValue]

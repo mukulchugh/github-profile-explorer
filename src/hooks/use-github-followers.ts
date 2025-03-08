@@ -7,16 +7,10 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 interface UseGitHubFollowersOptions extends UserQueryOptions {
-  /**
-   * Type of relationship to fetch
-   */
   type?: "followers" | "following";
 }
 
 interface UseGitHubFollowersReturn extends PaginatedQueryResult {
-  /**
-   * List of users that are followers or being followed
-   */
   users: GitHubUser[];
 }
 
@@ -35,7 +29,6 @@ export function useGitHubFollowers({
       ? (page: number) => githubApi.getFollowers(username, page)
       : (page: number) => githubApi.getFollowing(username, page);
 
-  // Use the appropriate query key based on the type
   const queryKeyType = type === "followers" ? QUERY_KEYS.FOLLOWERS : QUERY_KEYS.FOLLOWING;
   const queryKey = [queryKeyType, username];
 
@@ -72,7 +65,6 @@ export function useGitHubFollowers({
     }
   }, [error, enabled, type, toast]);
 
-  // Flattened users data
   const users = data?.pages.flat() || [];
 
   const loadMore = () => {

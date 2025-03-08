@@ -34,7 +34,6 @@ export function HistorySection({ onSelectUser }: HistorySectionProps) {
     setDisplayCount((prevCount) => prevCount + 10);
   };
 
-  // No history state
   if (!enhancedSearchHistory || enhancedSearchHistory.length === 0) {
     return (
       <EmptyState

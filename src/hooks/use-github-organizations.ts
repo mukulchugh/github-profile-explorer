@@ -18,29 +18,10 @@ interface UseGitHubOrganizationsOptions {
 }
 
 interface UseGitHubOrganizationsReturn {
-  /**
-   * List of organizations the user belongs to
-   */
   organizations: GitHubOrg[];
-
-  /**
-   * Whether the data is currently loading
-   */
   isLoading: boolean;
-
-  /**
-   * Whether an error occurred
-   */
   isError: boolean;
-
-  /**
-   * Error object if any
-   */
   error: Error | null;
-
-  /**
-   * Function to manually refetch the data
-   */
   refetch: () => void;
 }
 
@@ -80,7 +61,6 @@ export function useGitHubOrganizations({
     retry: DEFAULT_RETRY_COUNT,
   });
 
-  // Handle error with useEffect
   useEffect(() => {
     if (error && enabled) {
       console.error("Error fetching GitHub organizations:", error);

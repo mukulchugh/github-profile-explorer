@@ -33,7 +33,6 @@ export const QUERY_KEYS = {
 };
 
 /**
- * Strongly typed query keys for the application
  * Ensures consistency across all query hooks
  */
 export type QueryKeys =

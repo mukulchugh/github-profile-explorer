@@ -6,6 +6,7 @@ import { HistorySection } from "@/components/history-section";
 import { Navigation } from "@/components/navigation";
 import { ProfileDetails } from "@/components/profile-details";
 import { SearchSection } from "@/components/search-section";
+import { Card } from "@/components/ui/card";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
 import { Tabs } from "@/components/ui/tabs";
@@ -18,6 +19,7 @@ import { ViewControlProvider, useViewControl } from "@/hooks/use-view-control";
 import { cn } from "@/lib/utils";
 import {
   IconArrowLeft,
+  IconBrandGithub,
   IconEye,
   IconGitCompare,
   IconHistory,
@@ -309,9 +311,40 @@ function HomeContent() {
           </ResizablePanelGroup>
         )}
       </div>
+      <Footer />
     </TooltipProvider>
   );
 }
+
+const Footer = () => {
+  return (
+    <Card
+      className="flex 
+      justify-between 
+      items-center  px-6 py-4
+    "
+    >
+      <p>
+        built with ❤️ by
+        <a
+          href="https://mukulchugh.com"
+          className="text-primary ml-1 hover:underline hover:text-violet-600"
+        >
+          Mukul Chugh
+        </a>
+      </p>
+      <p>
+        <a
+          href="https://github.com/mukulchugh/github-profile-explorer"
+          className="text-primary ml-1 flex items-center gap-1 hover:underline hover:text-violet-600"
+        >
+          <IconBrandGithub className="h-4 w-4 " />
+          View Source Code
+        </a>
+      </p>
+    </Card>
+  );
+};
 
 export function Home() {
   const handleError = React.useCallback((error: Error, errorInfo: React.ErrorInfo) => {

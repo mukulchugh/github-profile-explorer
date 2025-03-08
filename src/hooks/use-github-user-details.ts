@@ -42,7 +42,6 @@ export function useGitHubUserDetails(username: string, enabled: boolean = true) 
     retry: DEFAULT_RETRY_COUNT,
   });
 
-  // Handle error with useEffect
   useEffect(() => {
     if (error && enabled) {
       console.error("Error fetching GitHub user details:", error);

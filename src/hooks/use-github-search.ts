@@ -8,7 +8,7 @@ import { useDebounce } from "./use-debounce";
 interface UseGitHubSearchReturn {
   searchUsers: {
     data: UserSearchResult | undefined;
-    items: GitHubUser[]; // Flattened items from all pages
+    items: GitHubUser[];
     totalCount: number;
     isLoading: boolean;
     isSearching: boolean;
@@ -94,15 +94,12 @@ export function useGitHubSearch({
     }
   }, [safeQuery, debouncedQuery, searchUsersInfiniteQuery.isLoading]);
 
-  // Use useMemo to avoid unnecessary recalculations
   const items = useMemo(() => {
     return searchUsersInfiniteQuery.data?.pages.flatMap((page) => page.items) || [];
   }, [searchUsersInfiniteQuery.data?.pages]);
 
-  // Get the total count from the first page (all pages have the same total_count)
   const totalCount = searchUsersInfiniteQuery.data?.pages[0]?.total_count || 0;
 
-  // For backward compatibility, provide the first page data as the data property
   const firstPageData = searchUsersInfiniteQuery.data?.pages[0];
 
   return {
