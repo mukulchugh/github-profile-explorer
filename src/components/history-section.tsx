@@ -16,7 +16,7 @@ interface HistorySectionProps {
 export function HistorySection({ onSelectUser }: HistorySectionProps) {
   const { enhancedSearchHistory, clearHistory, removeFromHistory } = useSearchHistory();
   const { setActiveView } = useViewControl();
-  const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
+  const [_, setSelectedProfile] = useState<string | null>(null);
   const [displayCount, setDisplayCount] = useState(10);
 
   const handleSearchAgain = useCallback(

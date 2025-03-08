@@ -60,7 +60,7 @@ export function LanguageChart({ data }: LanguageChartProps) {
               label={({ name, percentage }) => `${name}: ${percentage}%`}
               labelLine={false}
             >
-              {formattedData.map((entry, index) => (
+              {formattedData.map((_, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}

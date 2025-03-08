@@ -28,7 +28,6 @@ interface RepositoryListProps {
 export function RepositoryList({ username, className }: RepositoryListProps) {
   const [pageSize] = useState(10);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
   const isMobile = useMobile();
 
   const { repositories, isLoading, error, hasMore, loadMore, isLoadingMore, filterRepositories } =
@@ -38,7 +37,6 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
       enabled: !!username?.trim(),
     });
 
-  // Apply filters to repositories
   const filteredRepositories =
     activeFilters.length > 0
       ? filterRepositories((repo) => {

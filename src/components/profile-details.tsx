@@ -54,7 +54,6 @@ export function ProfileDetails({
   const {
     organizations,
     isLoading: isLoadingOrgs,
-    error: orgsError,
     isError: isOrgsError,
   } = useGitHubOrganizations({
     username: username || "",
