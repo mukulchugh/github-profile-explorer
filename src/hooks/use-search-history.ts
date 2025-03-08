@@ -116,6 +116,7 @@ export function useSearchHistory(): UseSearchHistoryReturn {
         title: "Search history updated",
       });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [setHistoryValue]
   );
 

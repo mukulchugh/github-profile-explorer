@@ -1,5 +1,5 @@
 import { Toaster } from "sonner";
-import { Home } from "./pages/home";
+import { Home } from "./pages/_home";
 
 export function App() {
   return (
