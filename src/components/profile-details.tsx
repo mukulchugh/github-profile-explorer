@@ -23,6 +23,7 @@ import {
 import { useState } from "react";
 import { FollowersTab } from "./followers-tab";
 import { RepositoryList } from "./repository-list";
+import { Spinner } from "./ui/spinner";
 
 interface ProfileDetailsProps {
   username?: string;
@@ -69,7 +70,11 @@ export function ProfileDetails({
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center">Loading profile...</div>;
+    return (
+      <div className="p-8 text-center">
+        <Spinner />
+      </div>
+    );
   }
 
   if (!username) {
@@ -78,6 +83,7 @@ export function ProfileDetails({
         icon={IconSearch}
         title="No profile selected"
         description="Search for a GitHub user or select one from your history"
+        className="bg-white h-full"
       />
     );
   }

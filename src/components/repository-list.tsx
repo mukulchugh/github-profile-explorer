@@ -16,6 +16,7 @@ import { LoadMoreButton } from "./load-more-button";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Spinner } from "./ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 
@@ -98,22 +99,20 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
     <div className={cn("space-y-4", className)}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Repositories ({repositories.length})</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1"
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <IconFilter className="h-4 w-4" />
-          {showFilters ? "Hide Filters" : "Show Filters"}
-        </Button>
-      </div>
-
-      {showFilters && (
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <h3 className="text-sm font-medium mb-2">Filter by:</h3>
-            <ToggleGroup type="multiple" variant="outline" className="justify-start">
+        <Popover>
+          <PopoverTrigger asChild>
+            <span>
+              <Button variant="outline" size="sm" className="gap-1">
+                <IconFilter className="h-4 w-4" />
+              </Button>
+            </span>
+          </PopoverTrigger>
+          <PopoverContent className="w-fit">
+            <ToggleGroup
+              type="multiple"
+              variant="default"
+              className="justify-start flex-col w-full"
+            >
               <ToggleGroupItem
                 value="starred"
                 aria-label="Filter by starred"
@@ -135,9 +134,9 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
                 <span className="hidden md:inline">Forked</span>
               </ToggleGroupItem>
             </ToggleGroup>
-          </CardContent>
-        </Card>
-      )}
+          </PopoverContent>
+        </Popover>
+      </div>
 
       <div className="space-y-4">
         {filteredRepositories && filteredRepositories.length > 0 ? (

@@ -304,7 +304,7 @@ function HomeContent() {
                 </h1>
               </div>
               <Separator />
-              <div className="flex-1 overflow-auto p-4">{renderRightContent()}</div>
+              <div className="flex-1 overflow-auto p-4 bg-zinc-50">{renderRightContent()}</div>
             </ResizablePanel>
           </ResizablePanelGroup>
         )}

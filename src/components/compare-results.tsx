@@ -36,6 +36,7 @@ export function CompareResults(): React.ReactElement {
         icon={IconGitCompare}
         title="No Profiles to Compare"
         description="Please select at least two GitHub profiles to compare"
+        className="bg-white h-full"
       />
     );
   }

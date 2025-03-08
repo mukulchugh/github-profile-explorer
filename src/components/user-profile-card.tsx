@@ -43,7 +43,6 @@ export function UserProfileCard({
     });
   };
 
-  // Compact variant for watchlist
   if (variant === "compact") {
     return (
       <Card className={cn("relative hover:shadow-md transition-shadow", className)}>
@@ -57,9 +56,11 @@ export function UserProfileCard({
             </Avatar>
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-sm truncate">{user.login}</h3>
-              <p className="text-xs text-muted-foreground truncate">
-                Added {formatDate(user.created_at)}
-              </p>
+              {user.created_at && (
+                <p className="text-xs text-muted-foreground truncate">
+                  Added {formatDate(user.created_at)}
+                </p>
+              )}
             </div>
             <div className="flex items-center">
               {onSelect && (

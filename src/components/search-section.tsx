@@ -124,6 +124,7 @@ export function SearchSection({
           icon={IconSearch}
           title="Search for GitHub users"
           description="Enter a username to search for GitHub users"
+          className="bg-zinc-50 h-full"
         />
       );
     }
@@ -134,6 +135,7 @@ export function SearchSection({
           icon={IconSearch}
           title="No results found"
           description="Try searching with a different query"
+          className="bg-zinc-50 h-full"
         />
       );
     }
