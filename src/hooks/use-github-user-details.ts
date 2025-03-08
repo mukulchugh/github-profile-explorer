@@ -1,5 +1,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { githubApi, GitHubUser } from "@/lib/api";
+import { DEFAULT_GC_TIME, DEFAULT_RETRY_COUNT, DEFAULT_STALE_TIME } from "@/lib/constants";
+import { QUERY_KEYS } from "@/lib/query-client";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
@@ -9,20 +11,18 @@ import { useEffect } from "react";
  * @param enabled Whether the query should be enabled
  * @returns The user details and loading state
  */
-export function useGitHubUserDetails(username: string, enabled: boolean = false) {
+export function useGitHubUserDetails(username: string, enabled: boolean = true) {
   const { toast } = useToast();
 
   const {
-    data: userDetails,
+    data: user,
     isLoading,
     error,
-    refetch,
     isError,
+    refetch,
   } = useQuery<GitHubUser, Error>({
-    queryKey: ["githubUserDetails", username],
+    queryKey: [QUERY_KEYS.USER, username],
     queryFn: async () => {
-      console.log(`Fetching user details for ${username}...`);
-
       if (!username?.trim()) {
         console.warn("Attempted to fetch user details with empty username");
         throw new Error("Username is required");
@@ -30,7 +30,6 @@ export function useGitHubUserDetails(username: string, enabled: boolean = false)
 
       try {
         const user = await githubApi.getUserDetails(username);
-        console.log(`Fetched details for ${username}:`, user);
         return user;
       } catch (err) {
         console.error(`Error fetching user details for ${username}:`, err);
@@ -38,9 +37,9 @@ export function useGitHubUserDetails(username: string, enabled: boolean = false)
       }
     },
     enabled: enabled && Boolean(username?.trim()),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-    retry: 2,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
+    retry: DEFAULT_RETRY_COUNT,
   });
 
   // Handle error with useEffect
@@ -56,7 +55,7 @@ export function useGitHubUserDetails(username: string, enabled: boolean = false)
   }, [error, enabled, toast]);
 
   return {
-    userDetails,
+    user,
     isLoading,
     isError,
     error,

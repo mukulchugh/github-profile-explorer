@@ -4,6 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useWatchList } from "@/hooks/use-watch-list";
 import { IconBookmark, IconEye, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
+import { Badge } from "./ui/badge";
+import { Spinner } from "./ui/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { UserProfileCard } from "./user-profile-card";
 
@@ -38,7 +40,7 @@ export function WatchlistSection({ onSelectUser }: WatchlistSectionProps) {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        <Spinner />
       </div>
     );
   }
@@ -58,7 +60,12 @@ export function WatchlistSection({ onSelectUser }: WatchlistSectionProps) {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <IconEye className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-bold">Watched Users ({watchedUsers.length})</h2>
+          <h2 className="text-xl font-bold flex items-center">
+            Watched Users
+            <Badge variant="outline" className="ml-2">
+              {watchedUsers.length}
+            </Badge>
+          </h2>
         </div>
         <TooltipProvider>
           <Tooltip>

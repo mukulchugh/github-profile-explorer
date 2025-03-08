@@ -1,5 +1,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { githubApi, GitHubOrg } from "@/lib/api";
+import { CACHE_TIME_SHORT, DEFAULT_GC_TIME, DEFAULT_RETRY_COUNT } from "@/lib/constants";
+import { QUERY_KEYS } from "@/lib/query-client";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
@@ -15,10 +17,40 @@ interface UseGitHubOrganizationsOptions {
   enabled?: boolean;
 }
 
+interface UseGitHubOrganizationsReturn {
+  /**
+   * List of organizations the user belongs to
+   */
+  organizations: GitHubOrg[];
+
+  /**
+   * Whether the data is currently loading
+   */
+  isLoading: boolean;
+
+  /**
+   * Whether an error occurred
+   */
+  isError: boolean;
+
+  /**
+   * Error object if any
+   */
+  error: Error | null;
+
+  /**
+   * Function to manually refetch the data
+   */
+  refetch: () => void;
+}
+
 /**
  * Hook for fetching a GitHub user's organizations with improved error handling
  */
-export function useGitHubOrganizations(username: string, enabled: boolean = false) {
+export function useGitHubOrganizations({
+  username,
+  enabled = false,
+}: UseGitHubOrganizationsOptions): UseGitHubOrganizationsReturn {
   const { toast } = useToast();
 
   const {
@@ -28,18 +60,14 @@ export function useGitHubOrganizations(username: string, enabled: boolean = fals
     refetch,
     isError,
   } = useQuery<GitHubOrg[], Error>({
-    queryKey: ["githubOrganizations", username],
+    queryKey: [QUERY_KEYS.ORGANIZATIONS, username],
     queryFn: async () => {
-      console.log(`Fetching organizations for ${username}...`);
-
       if (!username?.trim()) {
         console.warn("Attempted to fetch organizations with empty username");
         return [];
       }
-
       try {
         const orgs = await githubApi.getUserOrgs(username);
-        console.log(`Fetched ${orgs.length} organizations for ${username}:`, orgs);
         return orgs;
       } catch (err) {
         console.error(`Error fetching organizations for ${username}:`, err);
@@ -47,9 +75,9 @@ export function useGitHubOrganizations(username: string, enabled: boolean = fals
       }
     },
     enabled: enabled && Boolean(username?.trim()),
-    staleTime: 1000 * 60 * 5, // 5 minutes - reduced from 30 to get fresher data
-    gcTime: 1000 * 60 * 30, // 30 minutes
-    retry: 2, // Increased retry attempts
+    staleTime: CACHE_TIME_SHORT,
+    gcTime: DEFAULT_GC_TIME,
+    retry: DEFAULT_RETRY_COUNT,
   });
 
   // Handle error with useEffect
@@ -68,7 +96,7 @@ export function useGitHubOrganizations(username: string, enabled: boolean = fals
     organizations: organizations || [],
     isLoading,
     isError,
-    error,
+    error: error || null,
     refetch,
   };
 }

@@ -1,5 +1,7 @@
 import { useMobile } from "@/hooks/use-mobile";
 import { githubApi, GitHubRepository } from "@/lib/api";
+import { DEFAULT_GC_TIME, DEFAULT_RETRY_COUNT, DEFAULT_STALE_TIME } from "@/lib/constants";
+import { QUERY_KEYS } from "@/lib/query-client";
 import { formatDate } from "@/lib/utils";
 import {
   IconCode,
@@ -10,12 +12,13 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { EmptyState } from "./empty-state";
 import { LoadMoreButton } from "./load-more-button";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Spinner } from "./ui/spinner";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 
 interface RepositoryListProps {
@@ -29,16 +32,10 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
   const [showFilters, setShowFilters] = useState(false);
   const isMobile = useMobile();
 
-  // Debug logging
-  useEffect(() => {
-    console.log("RepositoryList rendered for username:", username);
-  }, [username]);
-
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } =
     useInfiniteQuery({
-      queryKey: ["githubRepositories", username],
+      queryKey: [QUERY_KEYS.REPOSITORIES, username],
       queryFn: async ({ pageParam = 1 }) => {
-        console.log(`Fetching repositories for ${username}, page ${pageParam}`);
         if (!username?.trim()) {
           console.warn("Attempted to fetch repositories with empty username");
           return [];
@@ -46,7 +43,7 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
 
         try {
           const repos = await githubApi.getUserRepos(username, pageParam, pageSize);
-          console.log(`Fetched ${repos.length} repositories for ${username}`);
+
           return repos;
         } catch (error) {
           console.error(`Error fetching repositories for ${username}:`, error);
@@ -55,6 +52,9 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
       },
       initialPageParam: 1,
       enabled: !!username?.trim(),
+      staleTime: DEFAULT_STALE_TIME,
+      gcTime: DEFAULT_GC_TIME,
+      retry: DEFAULT_RETRY_COUNT,
       getNextPageParam: (lastPage, allPages) => {
         return lastPage.length === pageSize ? allPages.length + 1 : undefined;
       },
@@ -76,7 +76,7 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
     return (
       <Card className={className}>
         <CardContent className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <Spinner />
         </CardContent>
       </Card>
     );
@@ -192,7 +192,9 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
       {/* Repository list */}
       <div className="space-y-4">
         {filteredRepositories && filteredRepositories.length > 0 ? (
-          filteredRepositories.map((repo) => <RepositoryCard key={repo.id} repo={repo} />)
+          filteredRepositories.map((repo) => (
+            <RepositoryCard key={repo.id} repo={repo} isMobile={isMobile} />
+          ))
         ) : (
           <Card>
             <CardContent className="py-10 text-center">
@@ -219,10 +221,10 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
 
 interface RepositoryCardProps {
   repo: GitHubRepository;
+  isMobile: boolean;
 }
 
-function RepositoryCard({ repo }: RepositoryCardProps) {
-  const isMobile = useMobile();
+function RepositoryCard({ repo, isMobile }: RepositoryCardProps) {
   const topics = repo.topics || [];
 
   return (

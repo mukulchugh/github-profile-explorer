@@ -1,4 +1,6 @@
 import { githubApi, GitHubUser, UserSearchResult } from "@/lib/api";
+import { DEFAULT_GC_TIME, DEFAULT_RETRY_COUNT, DEFAULT_STALE_TIME } from "@/lib/constants";
+import { QUERY_KEYS } from "@/lib/query-client";
 import { useInfiniteQuery, useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "./use-debounce";
@@ -43,7 +45,7 @@ export function useGitHubSearch({
   const debouncedQuery = useDebounce(safeQuery, 500);
 
   const searchUsersInfiniteQuery = useInfiniteQuery({
-    queryKey: ["githubUsers", debouncedQuery, perPage],
+    queryKey: [QUERY_KEYS.USERS, debouncedQuery, perPage],
     queryFn: async ({ pageParam = 1 }) => {
       try {
         if (!debouncedQuery.trim()) {
@@ -62,13 +64,13 @@ export function useGitHubSearch({
       return nextPage <= totalPages ? nextPage : undefined;
     },
     enabled: enabled && Boolean(debouncedQuery?.trim()),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 1,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
+    retry: DEFAULT_RETRY_COUNT,
   });
 
   const userDetailsQuery = useQuery({
-    queryKey: ["githubUser", username],
+    queryKey: [QUERY_KEYS.USER, username],
     queryFn: async () => {
       try {
         if (!username) throw new Error("Username is required");
@@ -79,9 +81,9 @@ export function useGitHubSearch({
       }
     },
     enabled: enabled && Boolean(username),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 1,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
+    retry: DEFAULT_RETRY_COUNT,
   });
 
   useEffect(() => {

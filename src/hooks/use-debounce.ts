@@ -10,12 +10,10 @@ export function useDebounce<T>(value: T, delay: number = 500): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
-    // Set up a timer to update the debounced value after the delay
     const timer = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
-    // Clean up the timer if the value changes before the delay has passed
     return () => {
       clearTimeout(timer);
     };
@@ -49,7 +47,6 @@ export function useDebounceCallback<Args extends unknown[], Return>(
     [callback, delay]
   );
 
-  // Clean up the timeout when the component unmounts
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {

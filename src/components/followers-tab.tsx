@@ -12,11 +12,11 @@ interface FollowersTabProps {
 }
 
 export function FollowersTab({ username, type, onSelectUser }: FollowersTabProps) {
-  const { users, isLoading, error, hasMore, loadMore, isLoadingMore } = useGitHubFollowers(
+  const { users, isLoading, error, hasMore, loadMore, isLoadingMore } = useGitHubFollowers({
     username,
     type,
-    true
-  );
+    enabled: true,
+  });
 
   if (isLoading && users.length === 0) {
     return (

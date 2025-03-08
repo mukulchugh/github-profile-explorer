@@ -4,10 +4,12 @@ import { SearchBar } from "@/components/search-bar";
 import { UserProfileCard } from "@/components/user-profile-card";
 import { useGitHubSearch } from "@/hooks/use-github-search";
 import { useSearchHistory } from "@/hooks/use-search-history";
+import { useToast } from "@/hooks/use-toast";
 import { useWatchList } from "@/hooks/use-watch-list";
 import { GitHubUser, UserSearchResult } from "@/lib/api";
 import { IconSearch } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
+import { Spinner } from "./ui/spinner";
 
 interface SearchSectionProps {
   searchResults?: UserSearchResult;
@@ -26,10 +28,8 @@ export function SearchSection({
   onSelectUser,
   initialQuery = "",
 }: SearchSectionProps) {
-  // Local state for the search query
   const [searchQuery, setSearchQuery] = useState(initialQuery || "");
 
-  // Sync with external initialQuery changes
   useEffect(() => {
     if (initialQuery && initialQuery !== searchQuery) {
       setSearchQuery(initialQuery);
@@ -37,36 +37,22 @@ export function SearchSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery]);
 
-  // Use the direct search history hook
   const { searchHistory, enhancedSearchHistory, addToHistory } = useSearchHistory();
 
-  // Use GitHub search with the current query
   const { searchUsers } = useGitHubSearch({
     query: searchQuery,
     enabled: Boolean(searchQuery?.trim()),
   });
 
-  // Debug logs
-  useEffect(() => {
-    if (searchUsers.items.length > 0) {
-      console.log("Search items:", searchUsers.items.length);
-      console.log("Has next page:", searchUsers.hasNextPage);
-      console.log("Total count:", searchUsers.totalCount);
-    }
-  }, [searchUsers.items, searchUsers.hasNextPage, searchUsers.totalCount]);
-
-  // Watch list functionality
   const { isWatched, addToWatchList, removeFromWatchList } = useWatchList();
+  const { toast } = useToast();
 
-  // Derive combined state
   const loading = isLoading || searchUsers.isLoading || searchUsers.isSearching;
   const error = searchUsers.error;
 
-  // Get the items to display - either from props or from the hook
   const displayItems = searchResults?.items || searchUsers.items;
   const totalCount = searchResults?.total_count || searchUsers.totalCount;
 
-  // Event handlers
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value || "");
   }, []);
@@ -74,10 +60,9 @@ export function SearchSection({
   const handleSearch = useCallback(
     (query: string) => {
       setSearchQuery(query);
-      console.log("SearchSection: Searching for", query);
+
       if (query.trim()) {
         addToHistory(query);
-        console.log("SearchSection: Added to history:", query);
       }
     },
     [addToHistory]
@@ -106,17 +91,20 @@ export function SearchSection({
         }
       } catch (error) {
         console.error("Error toggling watchlist:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update watch list. Please try again.",
+        });
       }
     },
-    [isWatched, addToWatchList, removeFromWatchList]
+    [isWatched, addToWatchList, removeFromWatchList, toast]
   );
 
-  // Render the main content of the search section based on current state
   const renderContent = () => {
     if (loading) {
       return (
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          <Spinner />
         </div>
       );
     }

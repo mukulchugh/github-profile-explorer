@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { GitHubOrg } from "@/lib/api";
 import { IconBuildingCommunity, IconExclamationCircle, IconRefresh } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import { Spinner } from "./ui/spinner";
 
 interface OrganizationsListProps {
   organizations: GitHubOrg[];
@@ -22,15 +23,6 @@ export function OrganizationsList({
   const [localError, setLocalError] = useState(isError);
 
   useEffect(() => {
-    console.log("OrganizationsList render:", {
-      organizationsCount: organizations?.length || 0,
-      isLoading,
-      isError,
-      retryCount,
-    });
-  }, [organizations, isLoading, isError, retryCount]);
-
-  useEffect(() => {
     setLocalError(isError);
   }, [isError]);
 
@@ -42,7 +34,6 @@ export function OrganizationsList({
       organizations.length === 0 &&
       retryCount < 2
     ) {
-      console.log("Auto-retrying organization fetch, attempt:", retryCount + 1);
       const timer = setTimeout(() => {
         setRetryCount((prev) => prev + 1);
         onRetry?.();
@@ -55,7 +46,7 @@ export function OrganizationsList({
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        <Spinner />
       </div>
     );
   }

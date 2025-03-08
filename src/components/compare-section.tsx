@@ -2,15 +2,16 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useViewControl } from "@/hooks/use-view-control-hook";
+import { useViewControl } from "@/hooks/use-view-control";
 import { IconGitCompare, IconPlus, IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface CompareSectionProps {
   onCompare?: (usernames: string[]) => void;
+  onUserInputChange?: (hasValidInputs: boolean) => void;
 }
 
-export function CompareSection({ onCompare }: CompareSectionProps) {
+export function CompareSection({ onCompare, onUserInputChange }: CompareSectionProps) {
   const [userInputs, setUserInputs] = useState<string[]>(["", ""]);
   const { setCompareUsernames } = useViewControl();
 
@@ -45,6 +46,10 @@ export function CompareSection({ onCompare }: CompareSectionProps) {
 
   const canCompare = userInputs.filter((u) => u.trim()).length >= 2;
 
+  useEffect(() => {
+    onUserInputChange?.(canCompare);
+  }, [canCompare, onUserInputChange]);
+
   return (
     <div className="space-y-6">
       <EmptyState
@@ -55,8 +60,14 @@ export function CompareSection({ onCompare }: CompareSectionProps) {
       />
 
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 flex-row justify-between items-center">
           <h3 className="text-lg font-semibold">Enter GitHub Usernames</h3>
+
+          {userInputs.length < 4 && (
+            <Button variant="outline" size="icon" className="gap-1" onClick={handleAddUser}>
+              <IconPlus className="h-4 w-4" />
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           {userInputs.map((input, index) => (
@@ -67,22 +78,25 @@ export function CompareSection({ onCompare }: CompareSectionProps) {
                 onChange={(e) => handleInputChange(index, e.target.value)}
               />
               {userInputs.length > 2 && (
-                <Button variant="ghost" size="icon" onClick={() => handleRemoveUser(index)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive"
+                  onClick={() => handleRemoveUser(index)}
+                >
                   <IconTrash className="h-4 w-4" />
                 </Button>
               )}
             </div>
           ))}
 
-          <div className="flex gap-4 pt-2">
-            {userInputs.length < 4 && (
-              <Button variant="outline" size="sm" className="gap-1" onClick={handleAddUser}>
-                <IconPlus className="h-4 w-4" />
-                Add User
-              </Button>
-            )}
-
-            <Button disabled={!canCompare} className="gap-1 ml-auto" onClick={handleCompare}>
+          <div className="pt-2">
+            <Button
+              disabled={!canCompare}
+              className="w-full"
+              onClick={handleCompare}
+              size={"default"}
+            >
               <IconGitCompare className="h-4 w-4" />
               Compare
             </Button>

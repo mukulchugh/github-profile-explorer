@@ -23,7 +23,7 @@ export interface SearchHistoryItem {
 }
 
 const isValidTimestamp = (timestamp: number): boolean => {
-  return !isNaN(timestamp) && timestamp > 0 && timestamp < Date.now() + 8640000000000000; // Max valid JS date
+  return !isNaN(timestamp) && timestamp > 0 && timestamp < Date.now() + 8640000000000000;
 };
 
 interface UseSearchHistoryReturn {
@@ -63,17 +63,13 @@ export function useSearchHistory(): UseSearchHistoryReturn {
       if (!query.trim()) return;
 
       setHistoryValue((prevHistory: SearchHistoryItem[]) => {
-        // Ensure prevHistory is an array
         const safeHistory = Array.isArray(prevHistory) ? prevHistory : [];
 
-        // Filter out any existing entries with this query
         const filteredHistory = safeHistory.filter((item) => item.query !== query);
 
-        // Create new history item with user data
         const newItem: SearchHistoryItem = {
           query,
           timestamp: Date.now(),
-          // Always include avatar and profile URL
           avatar_url: userData?.avatar_url || `https://avatars.githubusercontent.com/${query}`,
           html_url: userData?.html_url || `https://github.com/${query}`,
           userData: userData
@@ -89,18 +85,13 @@ export function useSearchHistory(): UseSearchHistoryReturn {
             : undefined,
         };
 
-        // Add new item to beginning of array and limit length
         return [newItem, ...filteredHistory].slice(0, MAX_HISTORY_ITEMS);
       });
     },
     [setHistoryValue]
   );
 
-  /**
-   * Clear all search history
-   */
   const clearHistory = useCallback(() => {
-    console.log("Clearing search history");
     setHistoryValue([]);
   }, [setHistoryValue]);
 
@@ -110,7 +101,6 @@ export function useSearchHistory(): UseSearchHistoryReturn {
    */
   const removeFromHistory = useCallback(
     (query: string) => {
-      console.log("Removing from history:", query);
       setHistoryValue((prevHistory: SearchHistoryItem[]) => {
         // Ensure prevHistory is an array
         const safeHistory = Array.isArray(prevHistory) ? prevHistory : [];

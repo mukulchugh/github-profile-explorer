@@ -14,8 +14,7 @@ import { WatchlistSection } from "@/components/watchlist-section";
 import { useGitHubSearch } from "@/hooks/use-github-search";
 import { useMobile } from "@/hooks/use-mobile";
 import { useSearchHistory } from "@/hooks/use-search-history";
-import { ViewControlProvider } from "@/hooks/use-view-control";
-import { useViewControl } from "@/hooks/use-view-control-hook";
+import { ViewControlProvider, useViewControl } from "@/hooks/use-view-control";
 import { cn } from "@/lib/utils";
 import {
   IconArrowLeft,
@@ -40,7 +39,7 @@ function HomeContent() {
   const isMobile = useMobile();
 
   // View control state
-  const { activeView, setActiveView } = useViewControl();
+  const { activeView, setActiveView, setCompareUsernames } = useViewControl();
 
   // Add state for selected username and search query
   const [selectedUsername, setSelectedUsername] = React.useState<string | undefined>();
@@ -54,35 +53,58 @@ function HomeContent() {
     enabled: !!selectedUsername,
   });
 
-  // Handle navigation link click
-  const handleNavLinkClick = (view: string) => {
-    setActiveView(view as "search" | "watchlist" | "history" | "compare");
+  // Handle compare inputs validation change - no need to store this state
+  // as it's only used in the CompareSection component
+  const handleCompareInputChange = (hasValidInputs: boolean) => {
+    // We don't need to do anything with this state at the parent level
   };
 
-  // Handle user selection
+  const handleNavLinkClick = (view: string) => {
+    if (
+      view !== "compare" &&
+      view !== "mobileCompareResult" &&
+      activeView !== view &&
+      (activeView === "compare" || activeView === "mobileCompareResult")
+    ) {
+      setCompareUsernames([]);
+    }
+
+    if (view !== "profile" && view !== "mobileCompareResult") {
+      setSelectedUsername(undefined);
+    }
+
+    setActiveView(
+      view as "search" | "watchlist" | "history" | "compare" | "profile" | "mobileCompareResult"
+    );
+  };
+
   const handleSelectUser = (username: string) => {
     if (!username) return;
     setSelectedUsername(username);
     addToHistory(username);
-    // On mobile, automatically switch to the profile view when a user is selected
     if (isMobile) {
       setActiveView("profile");
     }
   };
 
-  // Handle back button for mobile view
   const handleBackToSearch = () => {
     if (isMobile) {
-      setActiveView("search");
+      if (activeView === "mobileCompareResult") {
+        setActiveView("compare");
+      } else if (activeView === "profile") {
+        setActiveView("search");
+      }
     }
   };
 
-  // Handle comparison submission
   const handleCompare = () => {
-    setActiveView("compare");
+    if (isMobile) {
+      setActiveView("mobileCompareResult");
+    } else {
+      setActiveView("compare");
+    }
   };
 
-  // Render the middle content based on the active view
   const renderMiddleContent = () => {
     switch (activeView) {
       case "watchlist":
@@ -90,12 +112,13 @@ function HomeContent() {
       case "history":
         return <HistorySection onSelectUser={handleSelectUser} />;
       case "compare":
-        return <CompareSection onCompare={handleCompare} />;
+        return (
+          <CompareSection onCompare={handleCompare} onUserInputChange={handleCompareInputChange} />
+        );
       case "profile":
-        // Only used on mobile
         return (
           <div className="flex flex-col h-full">
-            <div className="flex items-center p-2">
+            <div className="flex items-center p-2 justify-between">
               <button
                 onClick={handleBackToSearch}
                 className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground"
@@ -103,8 +126,36 @@ function HomeContent() {
                 <IconArrowLeft className="mr-1 h-4 w-4" />
                 Back
               </button>
+              <h2 className="text-lg font-semibold">Profile</h2>
+              <div className="w-10"></div>
             </div>
-            <div className="flex-1 overflow-y-auto">{renderRightContent()}</div>
+            <div className="flex-1 overflow-y-auto">
+              <ProfileDetails
+                username={selectedUsername}
+                userDetails={getUserDetails.data}
+                isLoading={getUserDetails.isLoading}
+                onSelectUser={handleSelectUser}
+              />
+            </div>
+          </div>
+        );
+      case "mobileCompareResult":
+        return (
+          <div className="flex flex-col h-full">
+            <div className="flex items-center p-2 justify-between">
+              <button
+                onClick={handleBackToSearch}
+                className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <IconArrowLeft className="mr-1 h-4 w-4" />
+                Back
+              </button>
+              <h2 className="text-lg font-semibold">Comparison Results</h2>
+              <div className="w-10"></div> {/* Empty div for flex justification */}
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <CompareResults />
+            </div>
           </div>
         );
       case "search":
@@ -113,7 +164,6 @@ function HomeContent() {
     }
   };
 
-  // Render the right content based on the active view
   const renderRightContent = () => {
     if (activeView === "compare") {
       return <CompareResults />;
@@ -138,44 +188,57 @@ function HomeContent() {
     <TooltipProvider delayDuration={0}>
       <div className="h-screen w-full flex flex-col overflow-hidden">
         {isMobile ? (
-          // Mobile layout - stacked
           <div className="flex flex-col h-full">
-            {/* Mobile header with navigation */}
             <div className="flex items-center justify-between p-2 border-b">
               <img src={logo} alt="Logo" className="h-8 w-8" />
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleNavLinkClick("search")}
-                  className={`p-2 rounded-md ${activeView === "search" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                  className={`p-2 rounded-md ${
+                    activeView === "search" || activeView === "profile"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground"
+                  }`}
                 >
                   <IconSearch className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => handleNavLinkClick("compare")}
-                  className={`p-2 rounded-md ${activeView === "compare" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                  className={`p-2 rounded-md ${
+                    activeView === "compare" || activeView === "mobileCompareResult"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground"
+                  }`}
+                  aria-label="Compare GitHub profiles"
                 >
                   <IconGitCompare className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => handleNavLinkClick("watchlist")}
-                  className={`p-2 rounded-md ${activeView === "watchlist" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                  className={`p-2 rounded-md ${
+                    activeView === "watchlist"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground"
+                  }`}
                 >
                   <IconEye className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => handleNavLinkClick("history")}
-                  className={`p-2 rounded-md ${activeView === "history" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                  className={`p-2 rounded-md ${
+                    activeView === "history"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground"
+                  }`}
                 >
                   <IconHistory className="h-5 w-5" />
                 </button>
               </div>
             </div>
 
-            {/* Mobile content area - shows either search/list view or profile view */}
             <div className="flex-1 overflow-hidden px-4 py-4">{renderMiddleContent()}</div>
           </div>
         ) : (
-          // Desktop layout - original three-panel layout
           <ResizablePanelGroup
             direction="horizontal"
             onLayout={(sizes) => {

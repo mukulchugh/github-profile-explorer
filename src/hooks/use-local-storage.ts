@@ -7,11 +7,18 @@ import {
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 
 /**
+ * Error handler function for storage operations
+ */
+const handleStorageError = (operation: string, key: string, error: unknown): void => {
+  console.error(`Error ${operation} localStorage key "${key}":`, error);
+};
+
+/**
  * A hook for using localStorage with React state
  *
  * @param key - The key to store the value under in localStorage
  * @param initialValue - The initial value to use if no value is found in localStorage
- * @returns A tuple of [value, setValue, removeValue, resetValue]
+ * @returns A tuple of [value, setValue, removeValue, resetValue, isLoading]
  */
 export function useLocalStorage<T>(
   key: string,
@@ -54,7 +61,7 @@ export function useLocalStorage<T>(
           setStorageItem(key, valueToStore);
         }
       } catch (error) {
-        console.error(`Error setting localStorage key "${key}":`, error);
+        handleStorageError("setting", key, error);
       }
     },
     [key, storedValue, storageAvailable]
@@ -71,15 +78,19 @@ export function useLocalStorage<T>(
         removeStorageItem(key);
       }
     } catch (error) {
-      console.error(`Error removing localStorage key "${key}":`, error);
+      handleStorageError("removing", key, error);
     }
   }, [key, initialValue, storageAvailable]);
 
   // Handler for resetting to initial value
   const resetValue = useCallback(() => {
-    setStoredValue(initialValue);
-    if (storageAvailable) {
-      setStorageItem(key, initialValue);
+    try {
+      setStoredValue(initialValue);
+      if (storageAvailable) {
+        setStorageItem(key, initialValue);
+      }
+    } catch (error) {
+      handleStorageError("resetting", key, error);
     }
   }, [key, initialValue, storageAvailable]);
 
@@ -93,7 +104,7 @@ export function useLocalStorage<T>(
           const newValue = JSON.parse(e.newValue);
           setStoredValue(newValue.data);
         } catch (error) {
-          console.error(`Error processing storage event for key "${key}":`, error);
+          handleStorageError("processing storage event for", key, error);
         }
       }
     };

@@ -15,10 +15,8 @@ export function useWatchList() {
     GitHubUser[]
   >(WATCHLIST_KEY, []);
 
-  // Add user to watch list
   const addToWatchList = useCallback(
     async (user: GitHubUser) => {
-      // Check if user is already in the watch list
       const isAlreadyWatched = watchedUsers.some((u) => u.id === user.id);
 
       if (isAlreadyWatched) {
@@ -39,7 +37,6 @@ export function useWatchList() {
     [watchedUsers, setWatchedUsers, toast]
   );
 
-  // Remove user from watch list
   const removeFromWatchList = useCallback(
     async (userId: number) => {
       const userToRemove = watchedUsers.find((u) => u.id === userId);

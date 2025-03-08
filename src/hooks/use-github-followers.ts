@@ -1,16 +1,33 @@
 import { useToast } from "@/hooks/use-toast";
 import { githubApi, GitHubUser } from "@/lib/api";
+import { CACHE_TIME_MEDIUM, DEFAULT_GC_TIME, DEFAULT_RETRY_COUNT } from "@/lib/constants";
+import { QUERY_KEYS } from "@/lib/query-client";
+import { PaginatedQueryResult, UserQueryOptions } from "@/lib/query-types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+
+interface UseGitHubFollowersOptions extends UserQueryOptions {
+  /**
+   * Type of relationship to fetch
+   */
+  type?: "followers" | "following";
+}
+
+interface UseGitHubFollowersReturn extends PaginatedQueryResult {
+  /**
+   * List of users that are followers or being followed
+   */
+  users: GitHubUser[];
+}
 
 /**
  * Hook for fetching followers or following users for a GitHub user
  */
-export function useGitHubFollowers(
-  username: string,
-  type: "followers" | "following" = "followers",
-  enabled: boolean = false
-) {
+export function useGitHubFollowers({
+  username,
+  type = "followers",
+  enabled = false,
+}: UseGitHubFollowersOptions): UseGitHubFollowersReturn {
   const { toast } = useToast();
 
   const fetchFn =
@@ -18,7 +35,9 @@ export function useGitHubFollowers(
       ? (page: number) => githubApi.getFollowers(username, page)
       : (page: number) => githubApi.getFollowing(username, page);
 
-  const queryKey = [`github${type.charAt(0).toUpperCase() + type.slice(1)}`, username];
+  // Use the appropriate query key based on the type
+  const queryKeyType = type === "followers" ? QUERY_KEYS.FOLLOWERS : QUERY_KEYS.FOLLOWING;
+  const queryKey = [queryKeyType, username];
 
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<GitHubUser[], Error>({
@@ -26,8 +45,9 @@ export function useGitHubFollowers(
       queryFn: ({ pageParam }) => fetchFn(pageParam as number),
       enabled: enabled && Boolean(username?.trim()),
       initialPageParam: 1,
-      staleTime: 1000 * 60 * 10, // 10 minutes
-      gcTime: 1000 * 60 * 20, // 20 minutes
+      staleTime: CACHE_TIME_MEDIUM,
+      gcTime: DEFAULT_GC_TIME,
+      retry: DEFAULT_RETRY_COUNT,
       getNextPageParam: (lastPage, allPages) => {
         return lastPage.length === 30 ? allPages.length + 1 : undefined;
       },

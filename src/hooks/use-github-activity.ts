@@ -1,12 +1,52 @@
 import { useToast } from "@/hooks/use-toast";
-import { githubApi } from "@/lib/api";
+import { githubApi, GitHubEvent } from "@/lib/api";
+import { CACHE_TIME_SHORT, DEFAULT_GC_TIME, DEFAULT_RETRY_COUNT } from "@/lib/constants";
+import { QUERY_KEYS } from "@/lib/query-client";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
 interface UseGitHubActivityOptions {
+  /**
+   * Username to fetch activity for
+   */
   username: string;
+
+  /**
+   * Whether the query is enabled
+   */
   enabled?: boolean;
-  perPage?: number;
+}
+
+interface UseGitHubActivityReturn {
+  /**
+   * List of GitHub events for the user
+   */
+  events: GitHubEvent[];
+
+  /**
+   * Whether data is currently loading
+   */
+  isLoading: boolean;
+
+  /**
+   * Error message if any
+   */
+  error: string | null;
+
+  /**
+   * Whether there are more events to load
+   */
+  hasMore: boolean;
+
+  /**
+   * Function to load more events
+   */
+  loadMore: () => void;
+
+  /**
+   * Whether more data is currently being loaded
+   */
+  isLoadingMore: boolean;
 }
 
 /**
@@ -14,14 +54,13 @@ interface UseGitHubActivityOptions {
  */
 export function useGitHubActivity({
   username,
-  enabled = true,
-  perPage = 30,
-}: UseGitHubActivityOptions) {
+  enabled = false,
+}: UseGitHubActivityOptions): UseGitHubActivityReturn {
   const { toast } = useToast();
 
-  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
-      queryKey: ["githubEvents", username],
+      queryKey: [QUERY_KEYS.ACTIVITY, username],
       queryFn: async ({ pageParam }) => {
         if (!username?.trim()) {
           return [];
@@ -36,8 +75,11 @@ export function useGitHubActivity({
       },
       enabled: enabled && Boolean(username?.trim()),
       initialPageParam: 1,
+      staleTime: CACHE_TIME_SHORT,
+      gcTime: DEFAULT_GC_TIME,
+      retry: DEFAULT_RETRY_COUNT,
       getNextPageParam: (lastPage, allPages) => {
-        return lastPage.length === perPage ? allPages.length + 1 : undefined;
+        return lastPage.length === 30 ? allPages.length + 1 : undefined;
       },
     });
 
@@ -63,10 +105,9 @@ export function useGitHubActivity({
   return {
     events,
     isLoading,
+    error: error ? (error as Error).message || "Unknown error occurred" : null,
     hasMore: !!hasNextPage,
     loadMore,
     isLoadingMore: isFetchingNextPage,
-    error,
-    refetch,
   };
 }

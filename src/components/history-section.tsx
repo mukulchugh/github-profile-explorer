@@ -2,10 +2,11 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSearchHistory } from "@/hooks/use-search-history";
-import { useViewControl } from "@/hooks/use-view-control-hook";
+import { useViewControl } from "@/hooks/use-view-control";
 import { IconClockHour3, IconTrash } from "@tabler/icons-react";
 import { useCallback, useState } from "react";
 import { LoadMoreButton } from "./load-more-button";
+import { Badge } from "./ui/badge";
 import { UserProfileCard } from "./user-profile-card";
 
 interface HistorySectionProps {
@@ -21,7 +22,6 @@ export function HistorySection({ onSelectUser }: HistorySectionProps) {
   const handleSearchAgain = useCallback(
     (query: string) => {
       if (onSelectUser) {
-        console.log("Searching again for:", query);
         onSelectUser(query);
         setActiveView?.("search");
         setSelectedProfile(query);
@@ -50,7 +50,12 @@ export function HistorySection({ onSelectUser }: HistorySectionProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <IconClockHour3 className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-bold">Recent Searches ({enhancedSearchHistory.length})</h2>
+          <h2 className="text-xl font-bold flex items-center">
+            Recent Searches
+            <Badge variant="outline" className="ml-2">
+              {enhancedSearchHistory.length}
+            </Badge>
+          </h2>
         </div>
         <TooltipProvider>
           <Tooltip>

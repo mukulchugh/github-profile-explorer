@@ -39,16 +39,10 @@ export function SearchBar({
   const searchBarRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // Local state to store what user is typing before debouncing
-  const [localInputValue, setLocalInputValue] = React.useState(value);
-
-  // Update our component state when the controlled value changes
   React.useEffect(() => {
     setInputValue(value || "");
-    setLocalInputValue(value || "");
   }, [value]);
 
-  // Debounce the local input value before passing to parent
   const debouncedSearch = useDebounceCallback((query: string) => {
     if (!query.trim()) return;
 
@@ -68,15 +62,14 @@ export function SearchBar({
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    // Use the local input value for immediate feedback
-    if (!localInputValue.trim()) return;
+    if (!inputValue.trim()) return;
 
     if (onSearch) {
-      onSearch(localInputValue.trim());
+      onSearch(inputValue.trim());
     }
 
     if (userData) {
-      addToHistory(localInputValue.trim(), userData);
+      addToHistory(inputValue.trim(), userData);
     }
 
     setShowHistory(false);
@@ -84,11 +77,7 @@ export function SearchBar({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-
-    // Immediately update local UI state
-    setLocalInputValue(newValue);
-
-    // Only after debounce, update parent components
+    setInputValue(newValue);
     debouncedSearch(newValue);
   };
 
@@ -100,7 +89,6 @@ export function SearchBar({
   };
 
   const handleClearClick = () => {
-    setLocalInputValue("");
     setInputValue("");
     if (onChange) onChange("");
     if (inputRef.current) inputRef.current.focus();
@@ -121,8 +109,7 @@ export function SearchBar({
     if (enhancedHistory && enhancedHistory.length > 0) {
       return enhancedHistory
         .filter(
-          (item) =>
-            !localInputValue || item.query.toLowerCase().includes(localInputValue.toLowerCase())
+          (item) => !inputValue || item.query.toLowerCase().includes(inputValue.toLowerCase())
         )
         .slice(0, 5);
     }
@@ -131,12 +118,11 @@ export function SearchBar({
 
     return history
       .filter(
-        (item) =>
-          item && (!localInputValue || item.toLowerCase().includes(localInputValue.toLowerCase()))
+        (item) => item && (!inputValue || item.toLowerCase().includes(inputValue.toLowerCase()))
       )
       .slice(0, 5)
       .map((query) => ({ query, timestamp: Date.now() }));
-  }, [history, enhancedHistory, localInputValue]);
+  }, [history, enhancedHistory, inputValue]);
 
   return (
     <div className={cn("relative w-full", className)} ref={searchBarRef}>
@@ -146,14 +132,14 @@ export function SearchBar({
           <Input
             ref={inputRef}
             type="text"
-            value={localInputValue}
+            value={inputValue}
             onChange={handleInputChange}
             onFocus={() => setShowHistory(true)}
             placeholder={placeholder}
             className="border-0 p-0 shadow-none focus-visible:ring-0 flex-grow"
             disabled={isLoading}
           />
-          {localInputValue && (
+          {inputValue && (
             <Button
               type="button"
               variant="ghost"
@@ -193,7 +179,10 @@ export function SearchBar({
                   variant="ghost"
                   size="sm"
                   className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handleHistoryClick(item.query)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleHistoryClick(item.query);
+                  }}
                 >
                   Search
                 </Button>

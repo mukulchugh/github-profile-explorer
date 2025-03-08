@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useGitHubCompare } from "@/hooks/use-github-compare";
-import { useViewControl } from "@/hooks/use-view-control-hook";
+import { useViewControl } from "@/hooks/use-view-control";
 import { GitHubUser } from "@/lib/api";
 import {
   IconBuilding,
@@ -13,11 +13,14 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { format } from "date-fns";
+import * as React from "react";
 import { Spinner } from "./ui/spinner";
 
-export function CompareResults() {
+export function CompareResults(): React.ReactElement {
   const { compareUsernames } = useViewControl();
-  const { users, isLoading, hasErrors } = useGitHubCompare(compareUsernames || []);
+  const { users, isLoading, hasErrors } = useGitHubCompare({
+    usernames: compareUsernames || [],
+  });
 
   if (isLoading) {
     return (
@@ -58,13 +61,16 @@ export function CompareResults() {
     <div className="space-y-6">
       {/* User Profiles */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <h2 className="text-xl font-bold">User Profiles</h2>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {users.map((user) => (
-              <div key={user.id} className="flex flex-col items-center text-center p-4">
+              <div
+                key={user.id}
+                className="flex flex-col items-center text-center p-4 rounded-lg border bg-card/50"
+              >
                 <div className="mb-3">
                   <img
                     src={user.avatar_url}
@@ -77,7 +83,7 @@ export function CompareResults() {
                   href={`https://github.com/${user.login}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   @{user.login}
                 </a>
@@ -92,7 +98,7 @@ export function CompareResults() {
 
       {/* Stats Comparison */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <h2 className="text-xl font-bold">GitHub Statistics</h2>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -127,7 +133,7 @@ export function CompareResults() {
 
       {/* Account Details */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <h2 className="text-xl font-bold">Account Details</h2>
         </CardHeader>
         <CardContent>
@@ -156,7 +162,7 @@ function StatComparisonSection({
   users,
   statKey,
   maxValue,
-}: StatComparisonSectionProps) {
+}: StatComparisonSectionProps): React.ReactElement {
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
@@ -192,7 +198,11 @@ function StatComparisonSection({
   );
 }
 
-function AccountDetailCard({ user }: { user: GitHubUser }) {
+interface AccountDetailCardProps {
+  user: GitHubUser;
+}
+
+function AccountDetailCard({ user }: AccountDetailCardProps): React.ReactElement {
   return (
     <div className="border rounded-lg p-4">
       <div className="flex gap-3 items-center mb-3">

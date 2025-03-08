@@ -1,6 +1,12 @@
 import { createContext } from "react";
 
-export type ViewType = "search" | "watchlist" | "history" | "compare" | "profile";
+export type ViewType =
+  | "search"
+  | "watchlist"
+  | "history"
+  | "compare"
+  | "profile"
+  | "mobileCompareResult";
 
 export interface ViewContextProps {
   activeView: ViewType;

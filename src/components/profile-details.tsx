@@ -53,9 +53,12 @@ export function ProfileDetails({
   const {
     organizations,
     isLoading: isLoadingOrgs,
-    refetch: refetchOrgs,
+    error: orgsError,
     isError: isOrgsError,
-  } = useGitHubOrganizations(username || "", !!username && activeTab === "organizations");
+  } = useGitHubOrganizations({
+    username: username || "",
+    enabled: !!username && activeTab === "organizations",
+  });
 
   const handleWatchlistToggle = async (user: GitHubUser) => {
     if (isWatched(user.id)) {
@@ -209,7 +212,6 @@ export function ProfileDetails({
                 isLoading={isLoadingOrgs}
                 isError={isOrgsError}
                 emptyMessage={`${userDetails.login} doesn't belong to any public organizations.`}
-                onRetry={refetchOrgs}
               />
             </CardContent>
           </Card>
