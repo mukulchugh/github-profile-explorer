@@ -1,14 +1,11 @@
 import { GitHubUser } from "@/lib/api";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useLocalStorage } from "./use-local-storage";
 
-// Storage key for search history
 const STORAGE_KEY = "search-history";
 
-// Maximum number of history items to keep
 const MAX_HISTORY_ITEMS = 10;
 
-// Enhanced search history item with timestamp
 export interface SearchHistoryItem {
   query: string;
   timestamp: number;
@@ -23,85 +20,25 @@ export interface SearchHistoryItem {
   };
 }
 
-// Helper function to validate a timestamp
 const isValidTimestamp = (timestamp: number): boolean => {
   return !isNaN(timestamp) && timestamp > 0 && timestamp < Date.now() + 8640000000000000; // Max valid JS date
 };
 
 interface UseSearchHistoryReturn {
-  /**
-   * Array of recent search queries
-   */
   searchHistory: string[];
-
-  /**
-   * Enhanced search history with timestamps
-   */
   enhancedSearchHistory: SearchHistoryItem[];
-
-  /**
-   * Add a new search query to history
-   */
   addToHistory: (query: string, userData?: GitHubUser) => void;
-
-  /**
-   * Clear all search history
-   */
   clearHistory: () => void;
-
-  /**
-   * Remove a specific search query from history
-   */
   removeFromHistory: (query: string) => void;
-
-  /**
-   * Whether the history is currently loading
-   */
   isLoading: boolean;
 }
 
-/**
- * Hook to manage search history with localStorage persistence
- * Uses the generic useLocalStorage hook for better error handling and storage management
- */
 export function useSearchHistory(): UseSearchHistoryReturn {
   const [historyValue, setHistoryValue, , , isLoading] = useLocalStorage<SearchHistoryItem[]>(
     STORAGE_KEY,
     []
   );
 
-  // Handle migration from old format (string[]) to new format (SearchHistoryItem[])
-  useEffect(() => {
-    migrateIfNeeded();
-  }, []);
-
-  // Migration function to convert old string[] format to SearchHistoryItem[]
-  const migrateIfNeeded = () => {
-    // Safety check - if historyValue is undefined or not an array
-    if (!historyValue) {
-      setHistoryValue([]);
-      return;
-    }
-
-    // Try to detect if we're using the old format (array of strings)
-    const needsMigration =
-      Array.isArray(historyValue) && historyValue.length > 0 && typeof historyValue[0] === "string";
-
-    if (needsMigration) {
-      console.log("Migrating search history from old format...");
-      // Convert string[] to SearchHistoryItem[]
-      const migratedHistory = (historyValue as unknown as string[]).map(
-        (query: string, index: number) => ({
-          query,
-          timestamp: Date.now() - index * 60000, // Create timestamps offset by 1 min each
-          userData: undefined,
-        })
-      );
-      setHistoryValue(migratedHistory);
-    }
-  };
-
-  // Filter out any invalid items and ensure timestamps are valid - WITH NULL SAFETY
   const validEnhancedHistory = Array.isArray(historyValue)
     ? historyValue.filter(
         (item: SearchHistoryItem) =>
@@ -112,7 +49,6 @@ export function useSearchHistory(): UseSearchHistoryReturn {
       )
     : [];
 
-  // Derive simple string history for backward compatibility
   const searchHistory = validEnhancedHistory.map((item: SearchHistoryItem) => item.query);
 
   /**

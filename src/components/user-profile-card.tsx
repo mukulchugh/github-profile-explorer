@@ -1,18 +1,18 @@
 import { GitHubUser } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import {
+  IconBrandTwitter,
   IconBuilding,
   IconChevronRight,
   IconExternalLink,
-  IconEye,
-  IconEyeOff,
   IconMail,
   IconMapPin,
+  IconTrash,
   IconUser,
 } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 
 type UserProfileCardVariant = "default" | "compact" | "search";
@@ -24,6 +24,7 @@ interface UserProfileCardProps {
   isInWatchlist?: boolean;
   onSelect?: (username: string) => void;
   variant?: UserProfileCardVariant;
+  onRemove?: (username: string) => void;
 }
 
 export function UserProfileCard({
@@ -33,6 +34,7 @@ export function UserProfileCard({
   isInWatchlist = false,
   onSelect,
   variant = "default",
+  onRemove,
 }: UserProfileCardProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -59,42 +61,39 @@ export function UserProfileCard({
                 {user?.name || user?.login || "Unknown User"}
               </CardTitle>
               {user?.public_repos > 0 && (
-                <Badge variant="outline" className="ml-2 shrink-0">
-                  {user.public_repos} repos
+                <Badge variant="secondary" className="ml-2 shrink-0">
+                  <IconBuilding className="h-4 w-4" /> {user.public_repos}
                 </Badge>
               )}
             </div>
-            <CardDescription className="text-xs truncate">
-              @{user?.login || "unknown"}
-            </CardDescription>
           </div>
 
           <div className="flex items-center ml-2 space-x-1">
-            {onAddToWatchlist && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAddToWatchlist(user);
-                }}
-                className="shrink-0"
-              >
-                {isInWatchlist ? (
-                  <IconEyeOff className="h-4 w-4" />
-                ) : (
-                  <IconEye className="h-4 w-4" />
-                )}
-              </Button>
-            )}
             {onSelect && (
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
+                size="sm"
                 onClick={() => onSelect(user.login)}
-                className="shrink-0"
+                className="shrink-0 ml-2"
               >
                 <IconChevronRight className="h-4 w-4" />
+              </Button>
+            )}
+
+            {user?.html_url && (
+              <a
+                href={user.html_url}
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <IconExternalLink className="h-4 w-4" />
+              </a>
+            )}
+
+            {onRemove && (
+              <Button variant="destructive" size="sm" onClick={() => onRemove(user.login)}>
+                <IconTrash className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -134,17 +133,13 @@ export function UserProfileCard({
                   <span className="truncate">{user.location}</span>
                 </div>
               )}
-              <div className="flex space-x-3">
-                <span>{user?.followers || 0} followers</span>
-                <span>{user?.public_repos || 0} repos</span>
-              </div>
             </div>
           </div>
 
           <div className="ml-2 flex items-center space-x-2">
             {onAddToWatchlist && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -161,7 +156,6 @@ export function UserProfileCard({
     );
   }
 
-  // Default variant (full profile)
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="flex flex-row items-center gap-4 pb-2">
@@ -195,21 +189,21 @@ export function UserProfileCard({
       <CardContent className="text-sm">
         {user?.bio && <p className="mb-4 text-muted-foreground">{user.bio}</p>}
 
-        <div className="grid gap-2">
+        <div className="flex gap-2">
           {user?.company && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <IconBuilding className="h-4 w-4 text-muted-foreground" />
               <span>{user.company}</span>
             </div>
           )}
           {user?.location && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <IconMapPin className="h-4 w-4 text-muted-foreground" />
               <span>{user.location}</span>
             </div>
           )}
           {user?.email && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <IconMail className="h-4 w-4 text-muted-foreground" />
               <a href={`mailto:${user.email}`} className="hover:underline">
                 {user.email}
@@ -217,7 +211,7 @@ export function UserProfileCard({
             </div>
           )}
           {user?.blog && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <IconExternalLink className="h-4 w-4 text-muted-foreground" />
               <a
                 href={user.blog.startsWith("http") ? user.blog : `https://${user.blog}`}
@@ -229,9 +223,17 @@ export function UserProfileCard({
               </a>
             </div>
           )}
+          {user?.twitter_username && (
+            <div className="flex items-center gap-1">
+              <IconBrandTwitter className="h-4 w-4 text-muted-foreground" />
+              <a href={`https://twitter.com/${user.twitter_username}`} className="hover:underline">
+                {user.twitter_username}
+              </a>
+            </div>
+          )}
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-4">
+        <div className="mt-4 grid grid-cols-3 gap-4">
           <div className="flex flex-col items-center justify-center rounded-md border p-3">
             <div className="text-2xl font-bold">{user?.public_repos || 0}</div>
             <div className="text-xs text-muted-foreground">Repositories</div>
@@ -239,6 +241,10 @@ export function UserProfileCard({
           <div className="flex flex-col items-center justify-center rounded-md border p-3">
             <div className="text-2xl font-bold">{user?.followers || 0}</div>
             <div className="text-xs text-muted-foreground">Followers</div>
+          </div>
+          <div className="flex flex-col items-center justify-center rounded-md border p-3">
+            <div className="text-2xl font-bold">{user?.public_gists || 0}</div>
+            <div className="text-xs text-muted-foreground">Gists</div>
           </div>
         </div>
 
@@ -248,6 +254,7 @@ export function UserProfileCard({
           </div>
         </div>
       </CardContent>
+
       {onAddToWatchlist && (
         <CardFooter>
           <Button

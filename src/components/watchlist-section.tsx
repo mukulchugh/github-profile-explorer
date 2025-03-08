@@ -81,23 +81,14 @@ export function WatchlistSection({ onSelectUser }: WatchlistSectionProps) {
         {watchedUsers.map((user) => (
           <UserProfileCard
             key={user.login}
-            username={user.login}
-            name={user.name}
-            avatarUrl={user.avatar_url}
-            bio={user.bio}
-            orgsCount={user.organizations?.length}
-            followersCount={user.followers}
-            reposCount={user.public_repos}
-            followingCount={user.following}
-            isSelected={selectedUser === user.id}
-            variant="full"
-            showBio={true}
-            showRefresh={true}
-            fetchLatestData={true}
-            onSelect={() => onSelectUser?.(user.login)}
-            onOpenGitHub={() => window.open(user.html_url, "_blank")}
+            user={user}
+            variant="compact"
             onRemove={() => handleRemove(user.id)}
             onUserUpdate={handleUserUpdate}
+            onSelect={() => onSelectUser?.(user.login)}
+            onOpenGitHub={() => window.open(user.html_url, "_blank")}
+            onAddToWatchlist={() => addToWatchList(user)}
+            isInWatchlist={true}
           />
         ))}
       </div>

@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/empty-state";
+import { LoadMoreButton } from "@/components/load-more-button";
 import { SearchBar } from "@/components/search-bar";
 import { UserProfileCard } from "@/components/user-profile-card";
 import { useGitHubSearch } from "@/hooks/use-github-search";
@@ -9,24 +10,9 @@ import { IconSearch } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
 interface SearchSectionProps {
-  /**
-   * Optional pre-fetched search results to display
-   */
   searchResults?: UserSearchResult;
-
-  /**
-   * Whether the component is in loading state
-   */
   isLoading?: boolean;
-
-  /**
-   * Callback when a user is selected
-   */
   onSelectUser?: (username: string) => void;
-
-  /**
-   * Initial search query
-   */
   initialQuery?: string;
 }
 
@@ -38,7 +24,7 @@ export function SearchSection({
   searchResults,
   isLoading = false,
   onSelectUser,
-  initialQuery = "octocat",
+  initialQuery = "",
 }: SearchSectionProps) {
   // Local state for the search query
   const [searchQuery, setSearchQuery] = useState(initialQuery || "");
@@ -59,13 +45,25 @@ export function SearchSection({
     enabled: Boolean(searchQuery?.trim()),
   });
 
+  // Debug logs
+  useEffect(() => {
+    if (searchUsers.items.length > 0) {
+      console.log("Search items:", searchUsers.items.length);
+      console.log("Has next page:", searchUsers.hasNextPage);
+      console.log("Total count:", searchUsers.totalCount);
+    }
+  }, [searchUsers.items, searchUsers.hasNextPage, searchUsers.totalCount]);
+
   // Watch list functionality
   const { isWatched, addToWatchList, removeFromWatchList } = useWatchList();
 
   // Derive combined state
-  const results = searchResults || searchUsers.data;
   const loading = isLoading || searchUsers.isLoading || searchUsers.isSearching;
   const error = searchUsers.error;
+
+  // Get the items to display - either from props or from the hook
+  const displayItems = searchResults?.items || searchUsers.items;
+  const totalCount = searchResults?.total_count || searchUsers.totalCount;
 
   // Event handlers
   const handleSearchChange = useCallback((value: string) => {
@@ -145,7 +143,7 @@ export function SearchSection({
     }
 
     // Handle no results state
-    if (results && results.items && results.items.length === 0) {
+    if (displayItems.length === 0) {
       return (
         <EmptyState
           icon={IconSearch}
@@ -156,17 +154,14 @@ export function SearchSection({
     }
 
     // Handle results state
-    if (results && results.items && results.items.length > 0) {
-      const count = results.total_count !== undefined ? results.total_count : results.items.length;
-
+    if (displayItems.length > 0) {
       return (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Search Results ({count})</h2>
+            <h2 className="text-lg font-semibold">Search Results ({totalCount})</h2>
           </div>
-
           <div className="grid gap-2">
-            {results.items.map((user) => (
+            {displayItems.map((user) => (
               <UserProfileCard
                 key={user.id}
                 user={user}
@@ -174,10 +169,20 @@ export function SearchSection({
                 onSelect={onSelectUser}
                 isInWatchlist={isWatched(user.id)}
                 variant="search"
-                organizationsCount={0}
               />
             ))}
           </div>
+
+          {/* Only show pagination controls when using the hook (not with props) */}
+          {!searchResults && (
+            <LoadMoreButton
+              onClick={() => searchUsers.fetchNextPage()}
+              isLoading={searchUsers.isFetchingNextPage}
+              hasMore={!!searchUsers.hasNextPage}
+              className="mt-4"
+            />
+          )}
+          <div>Total results: {totalCount}</div>
         </div>
       );
     }
@@ -204,6 +209,7 @@ export function SearchSection({
         enhancedHistory={enhancedSearchHistory}
         isLoading={loading}
         className="w-full"
+        addToHistory={addToHistory}
       />
 
       {/* Search Results or Status */}

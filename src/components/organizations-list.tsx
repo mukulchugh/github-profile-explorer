@@ -21,7 +21,6 @@ export function OrganizationsList({
   const [retryCount, setRetryCount] = useState(0);
   const [localError, setLocalError] = useState(isError);
 
-  // Debug logging
   useEffect(() => {
     console.log("OrganizationsList render:", {
       organizationsCount: organizations?.length || 0,
@@ -31,12 +30,10 @@ export function OrganizationsList({
     });
   }, [organizations, isLoading, isError, retryCount]);
 
-  // Reset local error state when props change
   useEffect(() => {
     setLocalError(isError);
   }, [isError]);
 
-  // Add effect to retry if organizations are empty and not loading
   useEffect(() => {
     if (
       !isLoading &&
@@ -55,7 +52,6 @@ export function OrganizationsList({
     }
   }, [organizations, isLoading, isError, retryCount, onRetry]);
 
-  // Handle loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -64,7 +60,6 @@ export function OrganizationsList({
     );
   }
 
-  // Handle error state
   if (localError) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -85,7 +80,6 @@ export function OrganizationsList({
     );
   }
 
-  // Handle empty organizations
   if (!organizations || organizations.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -108,7 +102,6 @@ export function OrganizationsList({
     );
   }
 
-  // Render organizations
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {organizations.map((org) => (

@@ -48,36 +48,43 @@ export function ActivityFeed({
     const repoName = event.repo.name;
 
     switch (event.type) {
-      case "PushEvent":
+      case "PushEvent": {
         const commitCount = event.payload.commits?.length || 0;
         return `Pushed ${commitCount} commit${commitCount === 1 ? "" : "s"} to ${repoName}`;
+      }
 
-      case "PullRequestEvent":
+      case "PullRequestEvent": {
         const action = event.payload.action;
         const prNumber = event.payload.pull_request?.number;
         return `${action} pull request #${prNumber} in ${repoName}`;
+      }
 
-      case "IssuesEvent":
+      case "IssuesEvent": {
         const issueAction = event.payload.action;
         const issueNumber = event.payload.issue?.number;
         return `${issueAction} issue #${issueNumber} in ${repoName}`;
+      }
 
-      case "IssueCommentEvent":
+      case "IssueCommentEvent": {
         const commentIssue = event.payload.issue?.number;
         return `Commented on issue #${commentIssue} in ${repoName}`;
+      }
 
-      case "WatchEvent":
+      case "WatchEvent": {
         return `Starred ${repoName}`;
+      }
 
-      case "CreateEvent":
+      case "CreateEvent": {
         const refType = event.payload.ref_type;
         const ref = event.payload.ref;
         return `Created ${refType} ${ref ? `"${ref}" in ` : ""}${repoName}`;
+      }
 
-      case "DeleteEvent":
+      case "DeleteEvent": {
         const deletedRefType = event.payload.ref_type;
         const deletedRef = event.payload.ref;
         return `Deleted ${deletedRefType} ${deletedRef} from ${repoName}`;
+      }
 
       case "ForkEvent":
         return `Forked ${repoName}`;

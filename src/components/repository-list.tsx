@@ -124,7 +124,7 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
           <span className="text-sm font-normal text-muted-foreground">({repositories.length})</span>
         </h2>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2  border border-gray-200 rounded-md px-4 py-1">
           <IconFilter className="h-4 w-4 text-muted-foreground" />
           <ToggleGroup
             type="multiple"
@@ -154,6 +154,7 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
                 {repoStats.forked}
               </Badge>
             </ToggleGroupItem>
+
             <ToggleGroupItem
               value="personal"
               aria-label="Toggle personal repositories"
@@ -190,7 +191,7 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
         <LoadMoreButton
           onClick={() => fetchNextPage()}
           isLoading={isFetchingNextPage}
-          loadingText="Loading more repositories..."
+          hasMore={hasNextPage}
           className="w-full"
         />
       )}

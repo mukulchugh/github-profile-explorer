@@ -58,7 +58,7 @@ export function HistorySection({ onSelectUser }: HistorySectionProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="destructive"
+                variant="ghost"
                 size="sm"
                 onClick={() => clearHistory()}
                 className="flex items-center gap-2"
@@ -78,21 +78,36 @@ export function HistorySection({ onSelectUser }: HistorySectionProps) {
         {enhancedSearchHistory.slice(0, displayCount).map(({ query, timestamp, userData }) => (
           <UserProfileCard
             key={query}
-            username={query}
-            name={userData?.name}
-            avatarUrl={userData?.avatar_url}
-            bio={userData?.bio}
-            timestamp={timestamp}
-            followersCount={userData?.followers}
-            followingCount={userData?.following}
-            reposCount={userData?.public_repos}
-            orgsCount={userData?.organization_count}
-            isSelected={selectedProfile === query}
-            variant="history"
+            user={
+              userData || {
+                login: query,
+
+                avatar_url: userData?.avatar_url,
+                html_url: `https://github.com/${query}`,
+                timestamp: timestamp,
+                name: userData?.name,
+                bio: userData?.bio,
+                followers: userData?.followers,
+                following: userData?.following,
+                public_repos: userData?.public_repos,
+                organization_count: userData?.organization_count,
+                location: userData?.location,
+                company: userData?.company,
+                blog: userData?.blog,
+                twitter_username: userData?.twitter_username,
+                github_id: userData?.github_id,
+                github_url: userData?.github_url,
+                type: userData?.type,
+                site_admin: userData?.site_admin,
+                hireable: userData?.hireable,
+                bio: userData?.bio,
+                twitter_username: userData?.twitter_username,
+                public_gists: userData?.public_gists,
+              }
+            }
+            variant="compact"
             onSelect={() => handleSearchAgain(query)}
             onRemove={() => removeFromHistory(query)}
-            showBio={!!userData?.bio}
-            showCounts={true}
           />
         ))}
 

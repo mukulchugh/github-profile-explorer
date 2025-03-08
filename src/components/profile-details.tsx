@@ -1,5 +1,5 @@
 import { ActivityFeed } from "@/components/activity-feed";
-import { ContributionGraph } from "@/components/contribution-graph";
+
 import { EmptyState } from "@/components/empty-state";
 import { LanguageChart } from "@/components/language-chart";
 import { OrganizationsList } from "@/components/organizations-list";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserProfileCard } from "@/components/user-profile-card";
 import { useGitHubActivity } from "@/hooks/use-github-activity";
-import { useGitHubContributions } from "@/hooks/use-github-contributions";
+
 import { useGitHubOrganizations } from "@/hooks/use-github-organizations";
 import { useWatchList } from "@/hooks/use-watch-list";
 import { GitHubUser } from "@/lib/api";
@@ -16,12 +16,12 @@ import {
   IconBuilding,
   IconCode,
   IconHistory,
-  IconLoader,
   IconSearch,
   IconUser,
   IconUsers,
 } from "@tabler/icons-react";
 import { useState } from "react";
+import { FollowersTab } from "./followers-tab";
 import { RepositoryList } from "./repository-list";
 
 interface ProfileDetailsProps {
@@ -40,13 +40,6 @@ export function ProfileDetails({
   const { addToWatchList, removeFromWatchList, isWatched } = useWatchList();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Fetch GitHub contributions data
-  const { contributions, isLoading: isLoadingContributions } = useGitHubContributions(
-    username || "",
-    !!username && activeTab === "overview"
-  );
-
-  // Fetch GitHub activity data
   const {
     events,
     isLoading: isLoadingActivity,
@@ -57,7 +50,6 @@ export function ProfileDetails({
     enabled: !!username && activeTab === "activity",
   });
 
-  // Fetch GitHub organizations data
   const {
     organizations,
     isLoading: isLoadingOrgs,
@@ -114,17 +106,15 @@ export function ProfileDetails({
         onAddToWatchlist={handleWatchlistToggle}
         isInWatchlist={isWatched(userDetails.id)}
         variant="default"
-        organizationsCount={organizations.length}
       />
 
-      {/* Profile Tabs */}
       <Tabs
         defaultValue="overview"
         className="w-full"
         value={activeTab}
         onValueChange={setActiveTab}
       >
-        <TabsList className="grid grid-cols-7 w-full">
+        <TabsList className="grid grid-cols-6 w-full">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <IconCode className="h-4 w-4" />
             <span className="hidden sm:inline">Overview</span>
@@ -139,7 +129,7 @@ export function ProfileDetails({
           </TabsTrigger>
           <TabsTrigger value="organizations" className="flex items-center gap-2">
             <IconBuilding className="h-4 w-4" />
-            <span className="hidden sm:inline">Orgs</span>
+            <span className="hidden sm:inline">Organizations</span>
           </TabsTrigger>
           <TabsTrigger value="followers" className="flex items-center gap-2">
             <IconUsers className="h-4 w-4" />
@@ -162,15 +152,11 @@ export function ProfileDetails({
               </h2>
             </CardHeader>
             <CardContent className="px-0 pb-0">
-              {isLoadingContributions ? (
-                <div className="h-40 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary">
-                    <IconLoader className="h-5 w-5" />
-                  </div>
-                </div>
-              ) : (
-                <ContributionGraph username={username} />
-              )}
+              <img
+                src={`https://ghchart.rshah.org/${username}`}
+                alt="Contribution Graph"
+                className="w-full"
+              />
             </CardContent>
           </Card>
 
@@ -235,6 +221,17 @@ export function ProfileDetails({
               />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Tab content for Followers */}
+        <TabsContent value="followers" className="mt-6">
+          <FollowersTab username={userDetails.login} type="followers" onSelectUser={onSelectUser} />
+        </TabsContent>
+
+        {/* Tab content for Following */}
+
+        <TabsContent value="following" className="mt-6">
+          <FollowersTab username={userDetails.login} type="following" onSelectUser={onSelectUser} />
         </TabsContent>
       </Tabs>
     </div>

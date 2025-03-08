@@ -1,27 +1,23 @@
 import { githubApi, GitHubUser, UserSearchResult } from "@/lib/api";
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useInfiniteQuery, useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "./use-debounce";
 
 interface UseGitHubSearchReturn {
-  /**
-   * Search for GitHub users
-   */
   searchUsers: {
     data: UserSearchResult | undefined;
+    items: GitHubUser[]; // Flattened items from all pages
+    totalCount: number;
     isLoading: boolean;
     isSearching: boolean;
     error: Error | null;
+    fetchNextPage: () => void;
+    hasNextPage: boolean | undefined;
+    isFetchingNextPage: boolean;
   };
 
-  /**
-   * Get details for a specific user
-   */
   getUserDetails: UseQueryResult<GitHubUser, Error>;
 
-  /**
-   * Current search state
-   */
   searchState: {
     query: string;
     debouncedQuery: string;
@@ -29,63 +25,41 @@ interface UseGitHubSearchReturn {
 }
 
 interface UseGitHubSearchOptions {
-  /**
-   * Current search query
-   */
   query?: string;
-
-  /**
-   * Username to get details for
-   */
   username?: string;
-
-  /**
-   * Page number for search results
-   */
-  page?: number;
-
-  /**
-   * Results per page
-   */
   perPage?: number;
-
-  /**
-   * Enable or disable automatic searching
-   */
   enabled?: boolean;
 }
 
-/**
- * Hook to search GitHub users and get user details
- * without managing search history (which is now handled separately)
- */
 export function useGitHubSearch({
   query = "",
   username,
-  page = 1,
   perPage = 10,
   enabled = true,
 }: UseGitHubSearchOptions = {}): UseGitHubSearchReturn {
-  // Safety check for query
   const safeQuery = typeof query === "string" ? query : "";
   const [isSearching, setIsSearching] = useState(false);
 
-  // Debounce the search query to prevent too many API calls
   const debouncedQuery = useDebounce(safeQuery, 500);
 
-  // Search users query with error handling
-  const searchUsersQuery = useQuery({
-    queryKey: ["githubUsers", debouncedQuery, page, perPage],
-    queryFn: async () => {
+  const searchUsersInfiniteQuery = useInfiniteQuery({
+    queryKey: ["githubUsers", debouncedQuery, perPage],
+    queryFn: async ({ pageParam = 1 }) => {
       try {
         if (!debouncedQuery.trim()) {
           return { items: [], total_count: 0, incomplete_results: false } as UserSearchResult;
         }
-        return await githubApi.searchUsers(debouncedQuery, page, perPage);
+        return await githubApi.searchUsers(debouncedQuery, pageParam, perPage);
       } catch (error) {
         console.error("Error searching users:", error);
         throw error;
       }
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const totalPages = Math.ceil(lastPage.total_count / perPage);
+      const nextPage = allPages.length + 1;
+      return nextPage <= totalPages ? nextPage : undefined;
     },
     enabled: enabled && Boolean(debouncedQuery?.trim()),
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -93,7 +67,6 @@ export function useGitHubSearch({
     retry: 1,
   });
 
-  // Get user details query with error handling
   const userDetailsQuery = useQuery({
     queryKey: ["githubUser", username],
     queryFn: async () => {
@@ -111,21 +84,36 @@ export function useGitHubSearch({
     retry: 1,
   });
 
-  // Set isSearching state when query changes
   useEffect(() => {
     if (safeQuery.trim() !== debouncedQuery.trim()) {
       setIsSearching(true);
     } else {
-      setIsSearching(searchUsersQuery.isLoading);
+      setIsSearching(searchUsersInfiniteQuery.isLoading);
     }
-  }, [safeQuery, debouncedQuery, searchUsersQuery.isLoading]);
+  }, [safeQuery, debouncedQuery, searchUsersInfiniteQuery.isLoading]);
+
+  // Use useMemo to avoid unnecessary recalculations
+  const items = useMemo(() => {
+    return searchUsersInfiniteQuery.data?.pages.flatMap((page) => page.items) || [];
+  }, [searchUsersInfiniteQuery.data?.pages]);
+
+  // Get the total count from the first page (all pages have the same total_count)
+  const totalCount = searchUsersInfiniteQuery.data?.pages[0]?.total_count || 0;
+
+  // For backward compatibility, provide the first page data as the data property
+  const firstPageData = searchUsersInfiniteQuery.data?.pages[0];
 
   return {
     searchUsers: {
-      data: searchUsersQuery.data,
-      isLoading: searchUsersQuery.isLoading,
+      data: firstPageData,
+      items,
+      totalCount,
+      isLoading: searchUsersInfiniteQuery.isLoading,
       isSearching,
-      error: searchUsersQuery.error as Error | null,
+      error: searchUsersInfiniteQuery.error as Error | null,
+      fetchNextPage: searchUsersInfiniteQuery.fetchNextPage,
+      hasNextPage: searchUsersInfiniteQuery.hasNextPage,
+      isFetchingNextPage: searchUsersInfiniteQuery.isFetchingNextPage,
     },
     getUserDetails: userDetailsQuery,
     searchState: {

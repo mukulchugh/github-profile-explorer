@@ -1,5 +1,5 @@
-import { Home } from "@/pages/Home";
 import { Toaster } from "sonner";
+import { Home } from "./pages/home";
 
 export function App() {
   return (

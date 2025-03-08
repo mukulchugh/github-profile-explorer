@@ -1,79 +1,36 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchHistoryItem } from "@/hooks/use-search-history";
+import { GitHubUser } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { IconClockHour3, IconSearch, IconX } from "@tabler/icons-react";
 import { formatDistanceToNow } from "date-fns";
 import * as React from "react";
 
-// Safely format a timestamp, return empty string for invalid timestamps
 const safeFormatTimeDistance = (timestamp: number | undefined) => {
   if (!timestamp || isNaN(timestamp) || timestamp <= 0) {
-    return ""; // Return empty string for invalid timestamps
+    return "";
   }
 
   try {
     return formatDistanceToNow(timestamp, { addSuffix: true });
   } catch (error) {
     console.warn("Invalid timestamp encountered:", timestamp, error);
-    return ""; // Return empty string if formatting fails
+    return "";
   }
 };
 
 interface SearchBarProps {
-  /**
-   * Current search query value
-   */
   value?: string;
-
-  /**
-   * Called when the search query changes
-   */
   onChange?: (value: string) => void;
-
-  /**
-   * Called when search is submitted
-   */
   onSearch?: (query: string) => void;
-
-  /**
-   * Called when a history item is selected
-   */
   onHistorySelect?: (query: string) => void;
-
-  /**
-   * Recent search history items (simple string array for backward compatibility)
-   */
   history?: string[];
-
-  /**
-   * Enhanced search history with timestamps
-   */
   enhancedHistory?: SearchHistoryItem[];
-
-  /**
-   * Placeholder text for the search input
-   */
   placeholder?: string;
-
-  /**
-   * Additional class name for the search bar
-   */
   className?: string;
-
-  /**
-   * Whether the search is currently loading
-   */
   isLoading?: boolean;
-
-  /**
-   * User data to be saved with the search history
-   */
   userData?: GitHubUser;
-
-  /**
-   * Function to add to history
-   */
   addToHistory: (query: string, userData?: GitHubUser) => void;
 }
 
@@ -90,28 +47,23 @@ export function SearchBar({
   userData,
   addToHistory,
 }: SearchBarProps) {
-  // Internal state
   const [inputValue, setInputValue] = React.useState(value);
   const [showHistory, setShowHistory] = React.useState(false);
   const searchBarRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // Update internal value when external value changes
   React.useEffect(() => {
     setInputValue(value || "");
   }, [value]);
 
-  // Handle form submission
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!value.trim()) return;
 
-    // When a search is performed, also pass any user data if available
     if (onSearch) {
       onSearch(value.trim());
     }
 
-    // If the userData is available (passed as a prop), save it with the query
     if (userData) {
       addToHistory(value.trim(), userData);
     }
@@ -119,14 +71,12 @@ export function SearchBar({
     setShowHistory(false);
   };
 
-  // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
     if (onChange) onChange(newValue);
   };
 
-  // Handle history selection
   const handleHistoryClick = (query: string) => {
     if (onHistorySelect) {
       onHistorySelect(query);
@@ -134,14 +84,12 @@ export function SearchBar({
     setShowHistory(false);
   };
 
-  // Handle clear button
   const handleClearClick = () => {
     setInputValue("");
     if (onChange) onChange("");
     if (inputRef.current) inputRef.current.focus();
   };
 
-  // Close dropdown when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchBarRef.current && !searchBarRef.current.contains(event.target as Node)) {
@@ -153,7 +101,6 @@ export function SearchBar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter history based on current input
   const filteredHistory = React.useMemo(() => {
     if (enhancedHistory && enhancedHistory.length > 0) {
       return enhancedHistory
@@ -165,15 +112,12 @@ export function SearchBar({
 
     if (!history || !Array.isArray(history)) return [];
 
-    return (
-      history
-        .filter(
-          (item) => item && (!inputValue || item.toLowerCase().includes(inputValue.toLowerCase()))
-        )
-        .slice(0, 5)
-        // Convert simple history to enhanced format if needed
-        .map((query) => ({ query, timestamp: Date.now() }))
-    );
+    return history
+      .filter(
+        (item) => item && (!inputValue || item.toLowerCase().includes(inputValue.toLowerCase()))
+      )
+      .slice(0, 5)
+      .map((query) => ({ query, timestamp: Date.now() }));
   }, [history, enhancedHistory, inputValue]);
 
   return (
@@ -189,6 +133,7 @@ export function SearchBar({
             onFocus={() => setShowHistory(true)}
             placeholder={placeholder}
             className="border-0 p-0 shadow-none focus-visible:ring-0 flex-grow"
+            disabled={isLoading}
           />
           {inputValue && (
             <Button
