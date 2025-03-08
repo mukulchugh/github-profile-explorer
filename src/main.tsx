@@ -1,5 +1,5 @@
 import { queryClient } from "@/lib/query-client";
-import { Home } from "@/pages/home";
+import { Home } from "@/pages/home-page";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

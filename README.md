@@ -111,7 +111,7 @@ src/
 │   ├── storage.ts  # LocalStorage utilities
 │   └── utils.ts    # General utility functions
 ├── pages/          # Page components
-│   ├── home.tsx    # Main application page
+│   ├── home-page.tsx    # Main application page
 │   └── not-found.tsx # 404 page
 ├── app.tsx         # Root application component
 ├── main.tsx        # Application entry point
