@@ -2,7 +2,6 @@ import { githubApi, GitHubUser, UserSearchResult } from "@/lib/api";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useDebounce } from "./use-debounce";
-import { useSearchHistory } from "./use-search-history";
 
 interface UseGitHubSearchReturn {
   /**
@@ -19,16 +18,6 @@ interface UseGitHubSearchReturn {
    * Get details for a specific user
    */
   getUserDetails: UseQueryResult<GitHubUser, Error>;
-
-  /**
-   * Add search term to history
-   */
-  addToHistory: (query: string) => void;
-
-  /**
-   * Get search history for autocomplete
-   */
-  searchHistory: string[];
 
   /**
    * Current search state
@@ -68,6 +57,7 @@ interface UseGitHubSearchOptions {
 
 /**
  * Hook to search GitHub users and get user details
+ * without managing search history (which is now handled separately)
  */
 export function useGitHubSearch({
   query = "",
@@ -78,8 +68,6 @@ export function useGitHubSearch({
 }: UseGitHubSearchOptions = {}): UseGitHubSearchReturn {
   // Safety check for query
   const safeQuery = typeof query === "string" ? query : "";
-
-  const { searchHistory, addToHistory } = useSearchHistory();
   const [isSearching, setIsSearching] = useState(false);
 
   // Debounce the search query to prevent too many API calls
@@ -132,18 +120,6 @@ export function useGitHubSearch({
     }
   }, [safeQuery, debouncedQuery, searchUsersQuery.isLoading]);
 
-  // Add query to history when search is successful and has results
-  useEffect(() => {
-    if (
-      debouncedQuery &&
-      searchUsersQuery.isSuccess &&
-      searchUsersQuery.data?.items &&
-      searchUsersQuery.data.items.length > 0
-    ) {
-      addToHistory(debouncedQuery);
-    }
-  }, [debouncedQuery, searchUsersQuery.isSuccess, searchUsersQuery.data, addToHistory]);
-
   return {
     searchUsers: {
       data: searchUsersQuery.data,
@@ -152,8 +128,6 @@ export function useGitHubSearch({
       error: searchUsersQuery.error as Error | null,
     },
     getUserDetails: userDetailsQuery,
-    addToHistory,
-    searchHistory: searchHistory || [],
     searchState: {
       query: safeQuery,
       debouncedQuery,

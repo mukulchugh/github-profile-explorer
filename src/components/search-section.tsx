@@ -2,6 +2,7 @@ import { EmptyState } from "@/components/empty-state";
 import { SearchBar } from "@/components/search-bar";
 import { UserProfileCard } from "@/components/user-profile-card";
 import { useGitHubSearch } from "@/hooks/use-github-search";
+import { useSearchHistory } from "@/hooks/use-search-history";
 import { useWatchList } from "@/hooks/use-watch-list";
 import { GitHubUser, UserSearchResult } from "@/lib/api";
 import { IconSearch } from "@tabler/icons-react";
@@ -37,7 +38,7 @@ export function SearchSection({
   searchResults,
   isLoading = false,
   onSelectUser,
-  initialQuery = "",
+  initialQuery = "octocat",
 }: SearchSectionProps) {
   // Local state for the search query
   const [searchQuery, setSearchQuery] = useState(initialQuery || "");
@@ -49,8 +50,11 @@ export function SearchSection({
     }
   }, [initialQuery]);
 
+  // Use the direct search history hook
+  const { searchHistory, enhancedSearchHistory, addToHistory } = useSearchHistory();
+
   // Use GitHub search with the current query
-  const { searchUsers, addToHistory, searchHistory } = useGitHubSearch({
+  const { searchUsers } = useGitHubSearch({
     query: searchQuery,
     enabled: Boolean(searchQuery?.trim()),
   });
@@ -70,9 +74,12 @@ export function SearchSection({
 
   const handleSearch = useCallback(
     (query: string) => {
-      if (!query?.trim()) return;
       setSearchQuery(query);
-      addToHistory(query);
+      console.log("SearchSection: Searching for", query);
+      if (query.trim()) {
+        addToHistory(query);
+        console.log("SearchSection: Added to history:", query);
+      }
     },
     [addToHistory]
   );
@@ -110,36 +117,35 @@ export function SearchSection({
     // Handle loading state
     if (loading) {
       return (
-        <div className="flex justify-center items-center h-full py-12">
+        <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
         </div>
       );
     }
 
     // Handle error state
-    if (error && searchQuery) {
+    if (error) {
       return (
-        <EmptyState
-          icon={IconSearch}
-          title="Error fetching results"
-          description={`Error: ${error.message || "Unknown error"}`}
-        />
+        <div className="p-8 text-center">
+          <h2 className="text-lg font-semibold text-destructive mb-2">Error</h2>
+          <p className="text-muted-foreground">{error.message}</p>
+        </div>
       );
     }
 
-    // Handle empty initial state
+    // Handle no query state
     if (!searchQuery.trim()) {
       return (
         <EmptyState
           icon={IconSearch}
           title="Search for GitHub users"
-          description="Enter a username in the search box above to find users"
+          description="Enter a username to search for GitHub users"
         />
       );
     }
 
     // Handle no results state
-    if (results?.items?.length === 0) {
+    if (results && results.items && results.items.length === 0) {
       return (
         <EmptyState
           icon={IconSearch}
@@ -150,13 +156,13 @@ export function SearchSection({
     }
 
     // Handle results state
-    if (results?.items?.length > 0) {
+    if (results && results.items && results.items.length > 0) {
+      const count = results.total_count !== undefined ? results.total_count : results.items.length;
+
       return (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
-              Search Results ({results.total_count || results.items.length})
-            </h2>
+            <h2 className="text-lg font-semibold">Search Results ({count})</h2>
           </div>
 
           <div className="grid gap-2">
@@ -168,6 +174,7 @@ export function SearchSection({
                 onSelect={onSelectUser}
                 isInWatchlist={isWatched(user.id)}
                 variant="search"
+                organizationsCount={0}
               />
             ))}
           </div>
@@ -194,6 +201,7 @@ export function SearchSection({
         onSearch={handleSearch}
         onHistorySelect={handleHistorySelect}
         history={searchHistory}
+        enhancedHistory={enhancedSearchHistory}
         isLoading={loading}
         className="w-full"
       />

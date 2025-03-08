@@ -1,169 +1,247 @@
 import { useToast } from "@/hooks/use-toast";
+import { githubApi } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocalStorage } from "./use-local-storage";
 
-interface ContributionDay {
+// Define contribution data structure
+export interface ContributionDay {
   date: string;
   count: number;
-  level: 0 | 1 | 2 | 3 | 4; // Intensity levels (0: no contributions, 4: highest)
+  level: 0 | 1 | 2 | 3 | 4; // 0 = no contributions, 4 = max level
 }
 
-interface ContributionWeek {
-  days: ContributionDay[];
+export interface WeekdayContribution {
+  day: string;
+  count: number;
 }
+
+export interface MonthlyContribution {
+  month: string;
+  count: number;
+}
+
+export type ContributionPeriod = "year" | "month" | "week" | "30days";
 
 export interface ContributionsData {
-  weeks: ContributionWeek[];
   totalContributions: number;
+  days: ContributionDay[];
+  months: MonthlyContribution[];
+  weekdays: WeekdayContribution[];
+  last30Days: ContributionDay[];
 }
 
-/**
- * Generates mock contribution data when the API fails
- */
-function generateMockContributions(username: string): ContributionsData {
-  const weeks: ContributionWeek[] = [];
-  const now = new Date();
-  let totalContributions = 0;
-
-  // Generate 52 weeks (1 year) of mock data
-  for (let w = 0; w < 52; w++) {
-    const days: ContributionDay[] = [];
-
-    for (let d = 0; d < 7; d++) {
-      // Create a pseudo-random pattern based on username and date
-      const seed = (username.charCodeAt(0) || 65) + w * 7 + d;
-      const count = Math.floor(Math.pow(Math.sin(seed) * 0.5 + 0.5, 2) * 10);
-      let level: 0 | 1 | 2 | 3 | 4;
-
-      if (count === 0) level = 0;
-      else if (count < 3) level = 1;
-      else if (count < 5) level = 2;
-      else if (count < 8) level = 3;
-      else level = 4;
-
-      // Date for this contribution
-      const date = new Date(now);
-      date.setDate(date.getDate() - (52 - w) * 7 - (7 - d));
-
-      days.push({
-        date: date.toISOString().split("T")[0],
-        count,
-        level,
-      });
-
-      totalContributions += count;
-    }
-
-    weeks.push({ days });
-  }
-
-  return {
-    weeks,
-    totalContributions,
-  };
+interface RawContributionDay {
+  date: string;
+  count: number;
 }
 
-/**
- * Fetches a GitHub user's contribution data with fallback for CORS issues
- */
-async function fetchContributions(username: string): Promise<ContributionsData> {
+// Fetch GitHub contributions using the GitHub API
+async function fetchGitHubContributions(username: string): Promise<RawContributionDay[]> {
   try {
-    // Check for cached data first
-    const cachedData = localStorage.getItem(`contributions_${username}`);
-    const cacheTime = localStorage.getItem(`contributions_${username}_time`);
+    const contributionsData = await githubApi.getUserContributions(username);
 
-    // Use cache if it's less than 24 hours old
-    if (cachedData && cacheTime) {
-      const cacheAge = Date.now() - Number(cacheTime);
-      if (cacheAge < 24 * 60 * 60 * 1000) {
-        // 24 hours
-        return JSON.parse(cachedData);
-      }
-    }
-
-    // Attempt to fetch from the API with a timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    const response = await fetch(`https://github-contributions-api.vercel.app/api/v1/${username}`, {
-      signal: controller.signal,
-      mode: "cors",
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch contribution data: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    // Cache the successful response
-    localStorage.setItem(`contributions_${username}`, JSON.stringify(data));
-    localStorage.setItem(`contributions_${username}_time`, String(Date.now()));
-
-    return data;
+    // Convert from the API format to our RawContributionDay format
+    return contributionsData.map((contribution) => ({
+      date: contribution.date,
+      count: contribution.count,
+    }));
   } catch (error) {
-    console.warn("Falling back to mock contribution data:", error);
-
-    // Check if we have old cached data before using mock data
-    const cachedData = localStorage.getItem(`contributions_${username}`);
-    if (cachedData) {
-      return JSON.parse(cachedData);
-    }
-
-    // Generate mock data as last resort
-    const mockData = generateMockContributions(username);
-
-    // Store the mock data in cache to avoid regenerating it repeatedly
-    localStorage.setItem(`contributions_${username}`, JSON.stringify(mockData));
-    localStorage.setItem(
-      `contributions_${username}_time`,
-      String(Date.now() - 23 * 60 * 60 * 1000)
-    ); // Set to expire in ~1 hour
-
-    return mockData;
+    console.error(`Error fetching contributions for ${username}:`, error);
+    throw error;
   }
 }
 
-/**
- * Hook for fetching GitHub user's contribution data with fallback mechanisms
- */
-export function useGitHubContributions(username: string, enabled: boolean = false) {
-  const { toast } = useToast();
+const CACHE_TTL = 3600000; // 1 hour in milliseconds
 
+/**
+ * Hook for fetching and managing GitHub contributions data
+ */
+export function useGitHubContributions(username: string, enabled = false) {
+  const { toast } = useToast();
+  const [period, setPeriod] = useState<ContributionPeriod>("year");
+  const [cacheTTL] = useLocalStorage<number>("contributions-cache-ttl", CACHE_TTL);
+
+  // Fetch contribution data from GitHub
   const {
     data: contributions,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["githubContributions", username],
-    queryFn: () => fetchContributions(username),
-    enabled: enabled && Boolean(username?.trim()),
-    staleTime: 1000 * 60 * 60, // 1 hour
-    gcTime: 1000 * 60 * 60 * 24, // 24 hours
-    retry: 1, // Only retry once
+    queryFn: async () => {
+      console.log(`Fetching contributions for ${username}...`);
+
+      if (!username) {
+        return null;
+      }
+
+      try {
+        // Get the raw contribution data
+        const rawData = await fetchGitHubContributions(username);
+
+        // Process the raw data into our structured format
+        const processedData = processContributionData(rawData);
+
+        return processedData;
+      } catch (err) {
+        console.error(`Error fetching contributions for ${username}:`, err);
+        throw err;
+      }
+    },
+    enabled: enabled && Boolean(username),
+    staleTime: cacheTTL,
+    gcTime: cacheTTL * 2,
   });
 
   // Handle error with useEffect
   useEffect(() => {
     if (error && enabled) {
-      console.error("Error fetching contribution data:", error);
+      console.error("Error fetching GitHub contributions:", error);
       toast({
-        title: "Using Estimated Data",
-        description: "Showing estimated contribution activity due to API limitations.",
-        variant: "default",
-        duration: 5000,
+        title: "Error",
+        description: "Failed to load GitHub contributions. Please try again later.",
+        variant: "destructive",
       });
     }
   }, [error, enabled, toast]);
 
+  // Calculate filtered contributions based on selected period
+  const filteredContributions = useMemo(() => {
+    if (!contributions) return null;
+
+    switch (period) {
+      case "year":
+        return contributions.days;
+      case "month": {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        return contributions.days.filter((day) => new Date(day.date) >= startOfMonth);
+      }
+      case "week": {
+        const now = new Date();
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        return contributions.days.filter((day) => new Date(day.date) >= startOfWeek);
+      }
+      case "30days":
+        return contributions.last30Days;
+      default:
+        return contributions.days;
+    }
+  }, [contributions, period]);
+
+  // Function to change the currently viewed period
+  const changePeriod = useCallback((newPeriod: ContributionPeriod) => {
+    setPeriod(newPeriod);
+  }, []);
+
   return {
     contributions,
+    filteredContributions,
+    period,
+    changePeriod,
     isLoading,
     error,
+    refetch,
+    totalContributions: contributions?.totalContributions || 0,
+    months: contributions?.months || [],
+    weekdays: contributions?.weekdays || [],
+    last30Days: contributions?.last30Days || [],
   };
+}
+
+/**
+ * Process raw GitHub contribution data into our structured format
+ */
+function processContributionData(rawData: RawContributionDay[]): ContributionsData {
+  if (!rawData || !Array.isArray(rawData)) {
+    return {
+      totalContributions: 0,
+      days: [],
+      months: [],
+      weekdays: [],
+      last30Days: [],
+    };
+  }
+
+  // Ensure data is sorted by date
+  const sortedData = [...rawData].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  // Calculate total contributions
+  const totalContributions = sortedData.reduce((sum, day) => sum + day.count, 0);
+
+  // Process days
+  const days: ContributionDay[] = sortedData.map((day) => ({
+    date: day.date,
+    count: day.count,
+    level: getContributionLevel(day.count),
+  }));
+
+  // Calculate monthly contributions
+  const monthlyMap = new Map<string, number>();
+  for (const day of sortedData) {
+    const date = new Date(day.date);
+    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+    const currentCount = monthlyMap.get(monthKey) || 0;
+    monthlyMap.set(monthKey, currentCount + day.count);
+  }
+
+  const months: MonthlyContribution[] = Array.from(monthlyMap.entries())
+    .map(([month, count]) => ({ month, count }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  // Calculate weekday contributions
+  const weekdayMap = new Map<number, number>();
+  for (const day of sortedData) {
+    const date = new Date(day.date);
+    const weekday = date.getDay();
+    const currentCount = weekdayMap.get(weekday) || 0;
+    weekdayMap.set(weekday, currentCount + day.count);
+  }
+
+  const weekdayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const weekdays: WeekdayContribution[] = Array.from(weekdayMap.entries())
+    .map(([day, count]) => ({ day: weekdayNames[day], count }))
+    .sort((a, b) => weekdayNames.indexOf(a.day) - weekdayNames.indexOf(b.day));
+
+  // Calculate last 30 days
+  const now = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(now.getDate() - 30);
+
+  const last30Days = days.filter(
+    (day) => new Date(day.date) >= thirtyDaysAgo && new Date(day.date) <= now
+  );
+
+  return {
+    totalContributions,
+    days,
+    months,
+    weekdays,
+    last30Days,
+  };
+}
+
+/**
+ * Calculate contribution level (0-4) based on count
+ * This is used for color-coding cells in the heatmap
+ */
+function getContributionLevel(count: number): 0 | 1 | 2 | 3 | 4 {
+  if (count === 0) return 0;
+  if (count <= 3) return 1;
+  if (count <= 6) return 2;
+  if (count <= 9) return 3;
+  return 4;
 }

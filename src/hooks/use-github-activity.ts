@@ -1,28 +1,53 @@
 import { useToast } from "@/hooks/use-toast";
-import { githubApi, GitHubEvent } from "@/lib/api";
+import { githubApi, GitHubContribution } from "@/lib/api";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
+
+interface UseGitHubActivityOptions {
+  username: string;
+  enabled?: boolean;
+  perPage?: number;
+}
+
+interface UseGitHubActivityResult {
+  contributions: GitHubContribution[];
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => void;
+}
 
 /**
- * Hook for fetching recent activity of a GitHub user
+ * Hook for fetching recent activity of a GitHub user with optimized performance
  */
-export function useGitHubActivity(username: string, enabled: boolean = false) {
+export function useGitHubActivity({
+  username,
+  enabled = true,
+  perPage = 30,
+}: UseGitHubActivityOptions) {
   const { toast } = useToast();
 
-  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteQuery<GitHubEvent[], Error>({
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    useInfiniteQuery({
       queryKey: ["githubEvents", username],
-      queryFn: ({ pageParam }) => githubApi.getUserEvents(username, pageParam),
+      queryFn: async ({ pageParam }) => {
+        if (!username?.trim()) {
+          return [];
+        }
+
+        try {
+          return await githubApi.getUserEvents(username, pageParam);
+        } catch (error) {
+          console.error(`Error fetching events for ${username}:`, error);
+          throw error;
+        }
+      },
       enabled: enabled && Boolean(username?.trim()),
       initialPageParam: 1,
-      staleTime: 1000 * 60 * 5, // 5 minutes (more frequent updates for activity)
-      gcTime: 1000 * 60 * 10, // 10 minutes
       getNextPageParam: (lastPage, allPages) => {
-        return lastPage.length === 30 ? allPages.length + 1 : undefined;
+        return lastPage.length === perPage ? allPages.length + 1 : undefined;
       },
     });
 
-  // Handle error with useEffect
   useEffect(() => {
     if (error && enabled) {
       console.error("Error fetching GitHub events:", error);
@@ -34,15 +59,13 @@ export function useGitHubActivity(username: string, enabled: boolean = false) {
     }
   }, [error, enabled, toast]);
 
-  // Flatten pages of events
   const events = data?.pages.flat() || [];
 
-  // Function to load more events
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return {
     events,
@@ -51,5 +74,6 @@ export function useGitHubActivity(username: string, enabled: boolean = false) {
     loadMore,
     isLoadingMore: isFetchingNextPage,
     error,
+    refetch,
   };
 }

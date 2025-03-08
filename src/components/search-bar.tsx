@@ -1,8 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SearchHistoryItem } from "@/hooks/use-search-history";
 import { cn } from "@/lib/utils";
 import { IconClockHour3, IconSearch, IconX } from "@tabler/icons-react";
+import { formatDistanceToNow } from "date-fns";
 import * as React from "react";
+
+// Safely format a timestamp, return empty string for invalid timestamps
+const safeFormatTimeDistance = (timestamp: number | undefined) => {
+  if (!timestamp || isNaN(timestamp) || timestamp <= 0) {
+    return ""; // Return empty string for invalid timestamps
+  }
+
+  try {
+    return formatDistanceToNow(timestamp, { addSuffix: true });
+  } catch (error) {
+    console.warn("Invalid timestamp encountered:", timestamp, error);
+    return ""; // Return empty string if formatting fails
+  }
+};
 
 interface SearchBarProps {
   /**
@@ -26,9 +42,14 @@ interface SearchBarProps {
   onHistorySelect?: (query: string) => void;
 
   /**
-   * Recent search history items
+   * Recent search history items (simple string array for backward compatibility)
    */
   history?: string[];
+
+  /**
+   * Enhanced search history with timestamps
+   */
+  enhancedHistory?: SearchHistoryItem[];
 
   /**
    * Placeholder text for the search input
@@ -44,6 +65,16 @@ interface SearchBarProps {
    * Whether the search is currently loading
    */
   isLoading?: boolean;
+
+  /**
+   * User data to be saved with the search history
+   */
+  userData?: GitHubUser;
+
+  /**
+   * Function to add to history
+   */
+  addToHistory: (query: string, userData?: GitHubUser) => void;
 }
 
 export function SearchBar({
@@ -52,9 +83,12 @@ export function SearchBar({
   onSearch,
   onHistorySelect,
   history = [],
+  enhancedHistory = [],
   placeholder = "Search GitHub users...",
   className,
   isLoading = false,
+  userData,
+  addToHistory,
 }: SearchBarProps) {
   // Internal state
   const [inputValue, setInputValue] = React.useState(value);
@@ -70,11 +104,18 @@ export function SearchBar({
   // Handle form submission
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!value.trim()) return;
 
-    const query = inputValue.trim();
-    if (query && onSearch) {
-      onSearch(query);
+    // When a search is performed, also pass any user data if available
+    if (onSearch) {
+      onSearch(value.trim());
     }
+
+    // If the userData is available (passed as a prop), save it with the query
+    if (userData) {
+      addToHistory(value.trim(), userData);
+    }
+
     setShowHistory(false);
   };
 
@@ -87,9 +128,9 @@ export function SearchBar({
 
   // Handle history selection
   const handleHistoryClick = (query: string) => {
-    setInputValue(query);
-    if (onChange) onChange(query);
-    if (onHistorySelect) onHistorySelect(query);
+    if (onHistorySelect) {
+      onHistorySelect(query);
+    }
     setShowHistory(false);
   };
 
@@ -114,19 +155,31 @@ export function SearchBar({
 
   // Filter history based on current input
   const filteredHistory = React.useMemo(() => {
+    if (enhancedHistory && enhancedHistory.length > 0) {
+      return enhancedHistory
+        .filter(
+          (item) => !inputValue || item.query.toLowerCase().includes(inputValue.toLowerCase())
+        )
+        .slice(0, 5);
+    }
+
     if (!history || !Array.isArray(history)) return [];
 
-    return history
-      .filter(
-        (item) => item && (!inputValue || item.toLowerCase().includes(inputValue.toLowerCase()))
-      )
-      .slice(0, 5);
-  }, [history, inputValue]);
+    return (
+      history
+        .filter(
+          (item) => item && (!inputValue || item.toLowerCase().includes(inputValue.toLowerCase()))
+        )
+        .slice(0, 5)
+        // Convert simple history to enhanced format if needed
+        .map((query) => ({ query, timestamp: Date.now() }))
+    );
+  }, [history, enhancedHistory, inputValue]);
 
   return (
     <div className={cn("relative w-full", className)} ref={searchBarRef}>
       <form onSubmit={handleSubmit} className="flex items-center w-full">
-        <div className="relative flex-grow flex items-center rounded-l-md border border-r-0 border-input bg-transparent px-3 py-1">
+        <div className="relative flex-grow flex items-center rounded-md border border-input bg-transparent px-3 py-1">
           <IconSearch className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           <Input
             ref={inputRef}
@@ -150,19 +203,6 @@ export function SearchBar({
             </Button>
           )}
         </div>
-        <Button
-          type="submit"
-          variant="default"
-          size="sm"
-          className="rounded-l-none"
-          disabled={isLoading || !inputValue.trim()}
-        >
-          {isLoading ? (
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          ) : (
-            "Search"
-          )}
-        </Button>
       </form>
 
       {showHistory && filteredHistory.length > 0 && (
@@ -171,12 +211,29 @@ export function SearchBar({
             <p className="text-xs font-medium text-muted-foreground px-2 mb-1">Recent Searches</p>
             {filteredHistory.map((item) => (
               <div
-                key={item}
-                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded hover:bg-muted"
-                onClick={() => handleHistoryClick(item)}
+                key={item.query}
+                className="flex items-center justify-between px-2 py-2 cursor-pointer rounded hover:bg-muted group"
+                onClick={() => handleHistoryClick(item.query)}
               >
-                <IconClockHour3 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm truncate">{item}</span>
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <div className="bg-primary/10 rounded-full p-1 text-primary">
+                    <IconClockHour3 className="h-3 w-3" />
+                  </div>
+                  <div className="overflow-hidden">
+                    <span className="text-sm font-medium truncate block">{item.query}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {safeFormatTimeDistance(item.timestamp)}
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleHistoryClick(item.query)}
+                >
+                  Search
+                </Button>
               </div>
             ))}
           </div>

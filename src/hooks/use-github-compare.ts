@@ -9,7 +9,6 @@ import { useEffect } from "react";
 export function useGitHubCompare(usernames: string[]) {
   const { toast } = useToast();
 
-  // Filter out empty usernames
   const validUsernames = usernames.filter((name) => name?.trim());
 
   const results = useQueries({
@@ -22,7 +21,6 @@ export function useGitHubCompare(usernames: string[]) {
     })),
   });
 
-  // Check for errors
   useEffect(() => {
     results.forEach((result, index) => {
       if (result.error) {
@@ -49,7 +47,6 @@ export function useGitHubCompare(usernames: string[]) {
 
   const isLoading = results.some((result) => result.isLoading);
 
-  // Extract user data
   const users: GitHubUser[] = results
     .filter((result) => result.data)
     .map((result) => result.data as GitHubUser);

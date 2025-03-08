@@ -2,13 +2,13 @@ import { GitHubUser } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import {
   IconBuilding,
-  IconCalendar,
   IconChevronRight,
+  IconExternalLink,
   IconEye,
   IconEyeOff,
-  IconLink,
   IconMail,
   IconMapPin,
+  IconUser,
 } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
@@ -49,20 +49,24 @@ export function UserProfileCard({
       <Card className={cn("overflow-hidden hover:shadow-md transition-shadow", className)}>
         <div className="flex items-center p-4">
           <Avatar className="h-10 w-10 mr-4">
-            <AvatarImage src={user.avatar_url} alt={user.login} />
-            <AvatarFallback>{user.login.substring(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarImage src={user?.avatar_url} alt={user?.login} />
+            <AvatarFallback>{user?.login?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base truncate">{user.name || user.login}</CardTitle>
-              {user.public_repos > 0 && (
+              <CardTitle className="text-base truncate">
+                {user?.name || user?.login || "Unknown User"}
+              </CardTitle>
+              {user?.public_repos > 0 && (
                 <Badge variant="outline" className="ml-2 shrink-0">
                   {user.public_repos} repos
                 </Badge>
               )}
             </div>
-            <CardDescription className="text-xs truncate">@{user.login}</CardDescription>
+            <CardDescription className="text-xs truncate">
+              @{user?.login || "unknown"}
+            </CardDescription>
           </div>
 
           <div className="flex items-center ml-2 space-x-1">
@@ -107,32 +111,32 @@ export function UserProfileCard({
           "overflow-hidden hover:bg-accent/50 transition-colors cursor-pointer",
           className
         )}
-        onClick={() => onSelect?.(user.login)}
+        onClick={() => onSelect?.(user?.login || "")}
       >
         <div className="flex items-center p-3">
           <Avatar className="h-12 w-12 mr-4">
-            <AvatarImage src={user.avatar_url} alt={user.login} />
-            <AvatarFallback>{user.login.substring(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarImage src={user?.avatar_url} alt={user?.login} />
+            <AvatarFallback>{user?.login?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1 min-w-0">
             <CardTitle className="text-sm flex items-center">
-              {user.name || user.login}
-              {user.name && (
+              {user?.name || user?.login || "Unknown User"}
+              {user?.name && (
                 <CardDescription className="ml-2 text-xs">@{user.login}</CardDescription>
               )}
             </CardTitle>
 
             <div className="flex items-center mt-1 text-xs text-muted-foreground">
-              {user.location && (
+              {user?.location && (
                 <div className="flex items-center mr-4">
                   <IconMapPin className="h-3 w-3 mr-1" />
                   <span className="truncate">{user.location}</span>
                 </div>
               )}
               <div className="flex space-x-3">
-                <span>{user.followers} followers</span>
-                <span>{user.public_repos} repos</span>
+                <span>{user?.followers || 0} followers</span>
+                <span>{user?.public_repos || 0} repos</span>
               </div>
             </div>
           </div>
@@ -162,41 +166,49 @@ export function UserProfileCard({
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="flex flex-row items-center gap-4 pb-2">
         <div className="h-16 w-16 rounded-full overflow-hidden">
-          <img src={user.avatar_url} alt={user.login} className="h-full w-full object-cover" />
+          {user?.avatar_url ? (
+            <img src={user.avatar_url} alt={user.login} className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full bg-muted flex items-center justify-center">
+              <IconUser className="h-8 w-8 text-muted-foreground" />
+            </div>
+          )}
         </div>
         <div>
-          <CardTitle className="text-xl">{user.name || user.login}</CardTitle>
+          <CardTitle className="text-xl">{user?.name || user?.login || "Unknown User"}</CardTitle>
           <CardDescription className="text-sm">
-            <a
-              href={user.html_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-            >
-              @{user.login}
-            </a>
+            {user?.html_url ? (
+              <a
+                href={user.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                @{user.login}
+              </a>
+            ) : (
+              <span>@{user?.login || "unknown"}</span>
+            )}
           </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="text-sm">
-        {user.bio && <p className="mb-4 text-muted-foreground">{user.bio}</p>}
+        {user?.bio && <p className="mb-4 text-muted-foreground">{user.bio}</p>}
 
         <div className="grid gap-2">
-          {user.company && (
+          {user?.company && (
             <div className="flex items-center gap-2">
               <IconBuilding className="h-4 w-4 text-muted-foreground" />
               <span>{user.company}</span>
             </div>
           )}
-
-          {user.location && (
+          {user?.location && (
             <div className="flex items-center gap-2">
               <IconMapPin className="h-4 w-4 text-muted-foreground" />
               <span>{user.location}</span>
             </div>
           )}
-
-          {user.email && (
+          {user?.email && (
             <div className="flex items-center gap-2">
               <IconMail className="h-4 w-4 text-muted-foreground" />
               <a href={`mailto:${user.email}`} className="hover:underline">
@@ -204,39 +216,35 @@ export function UserProfileCard({
               </a>
             </div>
           )}
-
-          {user.blog && (
+          {user?.blog && (
             <div className="flex items-center gap-2">
-              <IconLink className="h-4 w-4 text-muted-foreground" />
+              <IconExternalLink className="h-4 w-4 text-muted-foreground" />
               <a
                 href={user.blog.startsWith("http") ? user.blog : `https://${user.blog}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline truncate max-w-[200px]"
+                className="hover:underline"
               >
                 {user.blog}
               </a>
             </div>
           )}
+        </div>
 
-          <div className="flex items-center gap-2">
-            <IconCalendar className="h-4 w-4 text-muted-foreground" />
-            <span>Joined {formatDate(user.created_at)}</span>
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="flex flex-col items-center justify-center rounded-md border p-3">
+            <div className="text-2xl font-bold">{user?.public_repos || 0}</div>
+            <div className="text-xs text-muted-foreground">Repositories</div>
+          </div>
+          <div className="flex flex-col items-center justify-center rounded-md border p-3">
+            <div className="text-2xl font-bold">{user?.followers || 0}</div>
+            <div className="text-xs text-muted-foreground">Followers</div>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="font-semibold">{user.public_repos}</div>
-            <div className="text-xs text-muted-foreground">Repositories</div>
-          </div>
-          <div>
-            <div className="font-semibold">{user.followers}</div>
-            <div className="text-xs text-muted-foreground">Followers</div>
-          </div>
-          <div>
-            <div className="font-semibold">{user.following}</div>
-            <div className="text-xs text-muted-foreground">Following</div>
+        <div className="mt-4">
+          <div className="text-xs text-muted-foreground">
+            Member since {formatDate(user?.created_at || "")}
           </div>
         </div>
       </CardContent>
