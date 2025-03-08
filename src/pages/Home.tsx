@@ -1,4 +1,3 @@
-import logo from "@/assets/logo.svg";
 import { CompareResults } from "@/components/compare-results";
 import { CompareSection } from "@/components/compare-section";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -25,7 +24,6 @@ import {
   IconHistory,
   IconSearch,
 } from "@tabler/icons-react";
-import { useTheme } from "next-themes";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -36,7 +34,6 @@ const viewSizes = {
 };
 
 function HomeContent() {
-  const { theme } = useTheme();
   const [isCollapsed, setIsCollapsed] = React.useState(true);
   const isMobile = useMobile();
   const { activeView, setActiveView, setCompareUsernames } = useViewControl();
@@ -179,7 +176,6 @@ function HomeContent() {
         {isMobile ? (
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-2 border-b">
-              <img src={logo} alt="Logo" className="h-8 w-8" />
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleNavLinkClick("search")}
