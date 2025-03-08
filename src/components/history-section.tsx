@@ -5,6 +5,7 @@ import { useSearchHistory } from "@/hooks/use-search-history";
 import { useViewControl } from "@/hooks/use-view-control";
 import { IconClockHour3, IconTrash } from "@tabler/icons-react";
 import { useCallback, useState } from "react";
+import { LoadMoreButton } from "./load-more-button";
 import { UserProfileCard } from "./user-profile-card";
 
 interface HistorySectionProps {
@@ -73,48 +74,43 @@ export function HistorySection({ onSelectUser }: HistorySectionProps) {
           </Tooltip>
         </TooltipProvider>
       </div>
-
       <div className="flex flex-col gap-4">
-        {enhancedSearchHistory.slice(0, displayCount).map(({ query, timestamp, userData }) => (
-          <UserProfileCard
-            key={query}
-            user={
-              userData || {
+        {enhancedSearchHistory
+          .slice(0, displayCount)
+          .map(({ query, timestamp, avatar_url, html_url }) => (
+            <UserProfileCard
+              key={query}
+              user={{
                 login: query,
-
-                avatar_url: userData?.avatar_url,
-                html_url: `https://github.com/${query}`,
-                timestamp: timestamp,
-                name: userData?.name,
-                bio: userData?.bio,
-                followers: userData?.followers,
-                following: userData?.following,
-                public_repos: userData?.public_repos,
-                organization_count: userData?.organization_count,
-                location: userData?.location,
-                company: userData?.company,
-                blog: userData?.blog,
-                twitter_username: userData?.twitter_username,
-                github_id: userData?.github_id,
-                github_url: userData?.github_url,
-                type: userData?.type,
-                site_admin: userData?.site_admin,
-                hireable: userData?.hireable,
-                bio: userData?.bio,
-                twitter_username: userData?.twitter_username,
-                public_gists: userData?.public_gists,
-              }
-            }
-            variant="compact"
-            onSelect={() => handleSearchAgain(query)}
-            onRemove={() => removeFromHistory(query)}
-          />
-        ))}
+                id: 0,
+                avatar_url: avatar_url || `https://avatars.githubusercontent.com/${query}`,
+                html_url: html_url || `https://github.com/${query}`,
+                name: query,
+                company: null,
+                blog: null,
+                location: null,
+                email: null,
+                bio: null,
+                public_repos: 0,
+                public_gists: 0,
+                followers: 0,
+                following: 0,
+                created_at: new Date(timestamp).toISOString(),
+                updated_at: new Date(timestamp).toISOString(),
+              }}
+              variant="compact"
+              onSelect={() => handleSearchAgain(query)}
+              onRemove={() => removeFromHistory(query)}
+            />
+          ))}
 
         {displayCount < enhancedSearchHistory.length && (
-          <Button onClick={handleLoadMore} className="self-center">
-            Load More
-          </Button>
+          <LoadMoreButton
+            onClick={handleLoadMore}
+            isLoading={false}
+            hasMore={true}
+            className="w-full"
+          />
         )}
       </div>
     </div>

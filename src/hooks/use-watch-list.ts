@@ -3,7 +3,6 @@ import { useCallback } from "react";
 import { useLocalStorage } from "./use-local-storage";
 import { useToast } from "./use-toast";
 
-// Define storage key
 const WATCHLIST_KEY = "user-watchlist";
 
 /**
@@ -56,22 +55,6 @@ export function useWatchList() {
     [watchedUsers, setWatchedUsers, toast]
   );
 
-  // Update an existing user in the watch list
-  const updateWatchedUser = useCallback(
-    (updatedUser: GitHubUser) => {
-      const userExists = watchedUsers.some((u) => u.id === updatedUser.id);
-      if (!userExists) return;
-
-      setWatchedUsers((current) =>
-        current.map((user) => (user.id === updatedUser.id ? updatedUser : user))
-      );
-
-      // No toast needed for silent updates
-    },
-    [watchedUsers, setWatchedUsers]
-  );
-
-  // Check if a user is in the watch list
   const isWatched = useCallback(
     (userId: number) => {
       return watchedUsers.some((user) => user.id === userId);
@@ -79,7 +62,6 @@ export function useWatchList() {
     [watchedUsers]
   );
 
-  // Clear the entire watch list
   const clearWatchList = useCallback(() => {
     clearWatchedUsers();
 
@@ -89,20 +71,12 @@ export function useWatchList() {
     });
   }, [clearWatchedUsers, toast]);
 
-  // Refresh the watch list (no-op with useLocalStorage as it's handled automatically)
-  const refreshWatchList = useCallback(() => {
-    // Nothing to do here with useLocalStorage
-    return Promise.resolve();
-  }, []);
-
   return {
     watchedUsers,
     isLoading,
     addToWatchList,
     removeFromWatchList,
-    updateWatchedUser,
     isWatched,
     clearWatchList,
-    refreshWatchList,
   };
 }

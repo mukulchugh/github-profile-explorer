@@ -9,6 +9,8 @@ const MAX_HISTORY_ITEMS = 10;
 export interface SearchHistoryItem {
   query: string;
   timestamp: number;
+  avatar_url?: string;
+  html_url?: string;
   userData?: {
     name?: string;
     avatar_url?: string;
@@ -71,6 +73,9 @@ export function useSearchHistory(): UseSearchHistoryReturn {
         const newItem: SearchHistoryItem = {
           query,
           timestamp: Date.now(),
+          // Always include avatar and profile URL
+          avatar_url: userData?.avatar_url || `https://avatars.githubusercontent.com/${query}`,
+          html_url: userData?.html_url || `https://github.com/${query}`,
           userData: userData
             ? {
                 name: userData.name || undefined,
@@ -79,7 +84,7 @@ export function useSearchHistory(): UseSearchHistoryReturn {
                 followers: userData.followers,
                 following: userData.following,
                 public_repos: userData.public_repos,
-                organization_count: userData.organizations?.length,
+                organization_count: undefined,
               }
             : undefined,
         };

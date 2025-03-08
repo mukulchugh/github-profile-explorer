@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { formatDistanceToNow } from "date-fns";
 import { twMerge } from "tailwind-merge";
 
 /**
@@ -38,3 +39,19 @@ export function formatDate(dateString: string) {
     day: "numeric",
   });
 }
+
+/**
+ * Formats a timestamp into a human-readable format
+ */
+export const safeFormatTimeDistance = (timestamp: number | undefined) => {
+  if (!timestamp || isNaN(timestamp) || timestamp <= 0) {
+    return "";
+  }
+
+  try {
+    return formatDistanceToNow(timestamp, { addSuffix: true });
+  } catch (error) {
+    console.warn("Invalid timestamp encountered:", timestamp, error);
+    return "";
+  }
+};

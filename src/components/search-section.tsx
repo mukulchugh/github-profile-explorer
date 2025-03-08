@@ -34,6 +34,7 @@ export function SearchSection({
     if (initialQuery && initialQuery !== searchQuery) {
       setSearchQuery(initialQuery);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery]);
 
   // Use the direct search history hook
@@ -112,7 +113,6 @@ export function SearchSection({
 
   // Render the main content of the search section based on current state
   const renderContent = () => {
-    // Handle loading state
     if (loading) {
       return (
         <div className="flex justify-center items-center py-12">
@@ -121,7 +121,6 @@ export function SearchSection({
       );
     }
 
-    // Handle error state
     if (error) {
       return (
         <div className="p-8 text-center">
@@ -131,7 +130,6 @@ export function SearchSection({
       );
     }
 
-    // Handle no query state
     if (!searchQuery.trim()) {
       return (
         <EmptyState
@@ -142,7 +140,6 @@ export function SearchSection({
       );
     }
 
-    // Handle no results state
     if (displayItems.length === 0) {
       return (
         <EmptyState
@@ -153,7 +150,6 @@ export function SearchSection({
       );
     }
 
-    // Handle results state
     if (displayItems.length > 0) {
       return (
         <div className="space-y-4">
@@ -173,7 +169,6 @@ export function SearchSection({
             ))}
           </div>
 
-          {/* Only show pagination controls when using the hook (not with props) */}
           {!searchResults && (
             <LoadMoreButton
               onClick={() => searchUsers.fetchNextPage()}
@@ -182,12 +177,10 @@ export function SearchSection({
               className="mt-4"
             />
           )}
-          <div>Total results: {totalCount}</div>
         </div>
       );
     }
 
-    // Fallback empty state
     return (
       <EmptyState
         icon={IconSearch}
@@ -199,7 +192,6 @@ export function SearchSection({
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      {/* Search Bar */}
       <SearchBar
         value={searchQuery}
         onChange={handleSearchChange}
@@ -212,7 +204,6 @@ export function SearchSection({
         addToHistory={addToHistory}
       />
 
-      {/* Search Results or Status */}
       {renderContent()}
     </div>
   );

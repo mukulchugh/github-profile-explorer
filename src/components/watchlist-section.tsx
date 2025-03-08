@@ -2,9 +2,9 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useWatchList } from "@/hooks/use-watch-list";
-import { GitHubUser } from "@/lib/api";
-import { IconBookmark, IconRefresh } from "@tabler/icons-react";
+import { IconBookmark, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { UserProfileCard } from "./user-profile-card";
 
 interface WatchlistSectionProps {
@@ -12,31 +12,27 @@ interface WatchlistSectionProps {
 }
 
 export function WatchlistSection({ onSelectUser }: WatchlistSectionProps) {
-  const {
-    watchedUsers,
-    isLoading,
-    removeFromWatchList,
-    clearWatchList,
-    refreshWatchList,
-    updateWatchedUser,
-  } = useWatchList();
+  const { watchedUsers, isLoading, removeFromWatchList, clearWatchList, addToWatchList } =
+    useWatchList();
   const { toast } = useToast();
-  const [selectedUser, setSelectedUser] = useState<number | null>(null);
+
+  const [, setSelectedUser] = useState<number | null>(null);
 
   const handleRemove = async (userId: number) => {
     setSelectedUser(userId);
     await removeFromWatchList(userId);
+    toast({
+      title: "User removed from watchlist",
+    });
   };
 
   const handleClearAll = () => {
     if (confirm("Are you sure you want to clear all watched users?")) {
       clearWatchList();
+      toast({
+        title: "All watched users have been removed",
+      });
     }
-  };
-
-  // Create a function to update a user in the watchlist
-  const handleUserUpdate = (updatedUser: GitHubUser) => {
-    updateWatchedUser(updatedUser);
   };
 
   if (isLoading) {
@@ -53,12 +49,6 @@ export function WatchlistSection({ onSelectUser }: WatchlistSectionProps) {
         icon={IconBookmark}
         title="Your watch list is empty"
         description="Add GitHub users to your watchlist to monitor them"
-        action={
-          <Button variant="outline" size="sm" onClick={() => refreshWatchList()}>
-            <IconRefresh className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-        }
       />
     );
   }
@@ -67,14 +57,25 @@ export function WatchlistSection({ onSelectUser }: WatchlistSectionProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">Watched Users ({watchedUsers.length})</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClearAll}
-          className="text-destructive hover:text-destructive"
-        >
-          Clear All
-        </Button>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAll}
+                className="flex items-center gap-2"
+              >
+                <IconTrash className="h-4 w-4" />
+                Clear All
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Remove all users from watchlist</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
@@ -84,9 +85,7 @@ export function WatchlistSection({ onSelectUser }: WatchlistSectionProps) {
             user={user}
             variant="compact"
             onRemove={() => handleRemove(user.id)}
-            onUserUpdate={handleUserUpdate}
             onSelect={() => onSelectUser?.(user.login)}
-            onOpenGitHub={() => window.open(user.html_url, "_blank")}
             onAddToWatchlist={() => addToWatchList(user)}
             isInWatchlist={true}
           />

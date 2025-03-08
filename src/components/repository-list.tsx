@@ -186,7 +186,6 @@ export function RepositoryList({ username, className }: RepositoryListProps) {
         )}
       </div>
 
-      {/* Load more button */}
       {hasNextPage && filteredRepositories && filteredRepositories.length > 0 && (
         <LoadMoreButton
           onClick={() => fetchNextPage()}

@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { GitHubEvent } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import {
@@ -9,6 +8,7 @@ import {
   IconStar,
 } from "@tabler/icons-react";
 import { format } from "date-fns";
+import { LoadMoreButton } from "./load-more-button";
 
 interface ActivityFeedProps {
   events: GitHubEvent[];
@@ -143,23 +143,12 @@ export function ActivityFeed({
       </div>
 
       {hasMore && (
-        <div className="flex justify-center pt-4">
-          <Button
-            onClick={onLoadMore}
-            variant="outline"
-            disabled={isLoading}
-            className="flex items-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                <span>Loading...</span>
-              </>
-            ) : (
-              <span>Load More Activities</span>
-            )}
-          </Button>
-        </div>
+        <LoadMoreButton
+          onClick={onLoadMore}
+          isLoading={isLoading}
+          hasMore={hasMore}
+          className="w-full"
+        />
       )}
     </div>
   );

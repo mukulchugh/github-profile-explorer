@@ -2,23 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchHistoryItem } from "@/hooks/use-search-history";
 import { GitHubUser } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { cn, safeFormatTimeDistance } from "@/lib/utils";
 import { IconClockHour3, IconSearch, IconX } from "@tabler/icons-react";
-import { formatDistanceToNow } from "date-fns";
 import * as React from "react";
-
-const safeFormatTimeDistance = (timestamp: number | undefined) => {
-  if (!timestamp || isNaN(timestamp) || timestamp <= 0) {
-    return "";
-  }
-
-  try {
-    return formatDistanceToNow(timestamp, { addSuffix: true });
-  } catch (error) {
-    console.warn("Invalid timestamp encountered:", timestamp, error);
-    return "";
-  }
-};
 
 interface SearchBarProps {
   value?: string;
