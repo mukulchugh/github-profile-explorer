@@ -1,0 +1,30 @@
+# Build output
+dist/
+build/
+
+# Node modules
+node_modules/
+
+# Cache directories
+.vite/
+.cache/
+
+# Coverage reports
+coverage/
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env*
+!.env.example
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
