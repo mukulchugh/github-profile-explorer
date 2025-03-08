@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { TablerIcon } from "@tabler/icons-react";
-import { Link } from "react-router-dom";
 import { buttonVariants } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
@@ -11,6 +10,7 @@ interface NavProps {
     label?: string;
     icon: TablerIcon;
     variant: "default" | "ghost";
+    onClick?: () => void; // Added onClick handler for view navigation
   }[];
 }
 
@@ -25,8 +25,8 @@ export function Navigation({ links, isCollapsed }: NavProps) {
           isCollapsed ? (
             <Tooltip key={index} delayDuration={0}>
               <TooltipTrigger asChild>
-                <Link
-                  to="#"
+                <button
+                  onClick={link.onClick}
                   className={cn(
                     buttonVariants({ variant: link.variant, size: "icon" }),
                     "h-9 w-9",
@@ -36,7 +36,7 @@ export function Navigation({ links, isCollapsed }: NavProps) {
                 >
                   <link.icon className="h-5 w-5" />
                   <span className="sr-only">{link.title}</span>
-                </Link>
+                </button>
               </TooltipTrigger>
               <TooltipContent side="right" className="flex items-center gap-4">
                 {link.title}
@@ -44,9 +44,9 @@ export function Navigation({ links, isCollapsed }: NavProps) {
               </TooltipContent>
             </Tooltip>
           ) : (
-            <Link
+            <button
               key={index}
-              to="#"
+              onClick={link.onClick}
               className={cn(
                 buttonVariants({ variant: link.variant, size: "sm" }),
                 link.variant === "default" &&
@@ -66,7 +66,7 @@ export function Navigation({ links, isCollapsed }: NavProps) {
                   {link.label}
                 </span>
               )}
-            </Link>
+            </button>
           )
         )}
       </nav>
