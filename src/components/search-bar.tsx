@@ -138,6 +138,7 @@ export function SearchBar({
             placeholder={placeholder}
             className="border-0 p-0 shadow-none focus-visible:ring-0 flex-grow"
             disabled={isLoading}
+            autoFocus
           />
           {inputValue && (
             <Button
@@ -153,6 +154,13 @@ export function SearchBar({
           )}
         </div>
       </form>
+      {!inputValue && (
+        <p className="text-xs text-muted-foreground mt-1 transition-all duration-300">
+          Try searching for <span className="font-bold">octocat</span>,{" "}
+          <span className="font-bold">mukulchugh</span>, or{" "}
+          <span className="font-bold">dcramer</span>
+        </p>
+      )}
 
       {showHistory && filteredHistory.length > 0 && (
         <div className="absolute w-full bg-background border rounded-md shadow-lg mt-1 z-50 max-h-60 overflow-y-auto">
