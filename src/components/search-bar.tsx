@@ -154,15 +154,8 @@ export function SearchBar({
           )}
         </div>
       </form>
-      {!inputValue && (
-        <p className="text-xs text-muted-foreground mt-1 transition-all duration-300">
-          Try searching for <span className="font-bold">octocat</span>,{" "}
-          <span className="font-bold">mukulchugh</span>, or{" "}
-          <span className="font-bold">dcramer</span>
-        </p>
-      )}
 
-      {showHistory && filteredHistory.length > 0 && (
+      {showHistory && filteredHistory.length > 0 ? (
         <div className="absolute w-full bg-background border rounded-md shadow-lg mt-1 z-50 max-h-60 overflow-y-auto">
           <div className="p-2">
             <p className="text-xs font-medium text-muted-foreground px-2 mb-1">Recent Searches</p>
@@ -198,6 +191,12 @@ export function SearchBar({
             ))}
           </div>
         </div>
+      ) : (
+        <p className="flex items-center text-xs text-muted-foreground mt-1 transition-all duration-300">
+          Try searching for <span className="font-bold ml-1">octocat</span>,{" "}
+          <span className="font-bold">mukulchugh</span>, or
+          <span className="font-bold ml-1">dcramer</span>
+        </p>
       )}
     </div>
   );

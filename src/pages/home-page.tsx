@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
 import { Tabs } from "@/components/ui/tabs";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WatchlistSection } from "@/components/watchlist-section";
 import { useGitHubSearch } from "@/hooks/use-github-search";
@@ -221,6 +222,8 @@ function HomeContent() {
                 >
                   <IconHistory className="h-5 w-5" />
                 </button>
+
+                <ThemeToggle />
               </div>
             </div>
 
