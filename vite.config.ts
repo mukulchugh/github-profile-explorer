@@ -15,5 +15,29 @@ export default defineConfig(() => {
       },
     },
     cacheDir: ".vite",
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            "react-vendor": ["react", "react-dom", "react-router-dom"],
+            "ui-components": [
+              "@radix-ui/react-avatar",
+              "@radix-ui/react-dialog",
+              "@radix-ui/react-dropdown-menu",
+              "@radix-ui/react-menubar",
+              "@radix-ui/react-popover",
+              "@radix-ui/react-separator",
+              "@radix-ui/react-slot",
+              "@radix-ui/react-tabs",
+              "@radix-ui/react-toggle",
+              "@radix-ui/react-toggle-group",
+              "@radix-ui/react-tooltip",
+            ],
+            "data-libs": ["@tanstack/react-query", "recharts"],
+            utils: ["date-fns", "clsx", "tailwind-merge", "class-variance-authority"],
+          },
+        },
+      },
+    },
   };
 });
