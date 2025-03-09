@@ -8,7 +8,7 @@
   "arrowParens": "always",
   "endOfLine": "lf",
   "jsxSingleQuote": false,
-  "jsxBracketSameLine": false,
+  "bracketSameLine": false,
   "quoteProps": "as-needed",
   "embeddedLanguageFormatting": "auto",
   "htmlWhitespaceSensitivity": "css",

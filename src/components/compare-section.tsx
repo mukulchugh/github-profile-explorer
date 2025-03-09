@@ -51,7 +51,7 @@ export function CompareSection({ onCompare }: CompareSectionProps) {
         icon={IconGitCompare}
         title="Compare GitHub Profiles"
         description="Enter GitHub usernames to compare their statistics and activity"
-        className="min-h-[150px] py-6"
+        className="min-h-[150px] py-6 bg-zinc-50 dark:bg-zinc-900"
       />
 
       <Card>

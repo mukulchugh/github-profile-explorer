@@ -40,6 +40,7 @@ export function HistorySection({ onSelectUser }: HistorySectionProps) {
         icon={IconClockHour3}
         title="No search history"
         description="Your recent searches will appear here"
+        className="bg-zinc-50 dark:bg-zinc-900 h-full"
       />
     );
   }
