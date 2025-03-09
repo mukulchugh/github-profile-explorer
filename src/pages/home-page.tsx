@@ -176,6 +176,9 @@ function HomeContent() {
         {isMobile ? (
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-2 border-b">
+              <span className="flex items-center gap-2 text-lg font-bold">
+                <IconBrandGithub className="h-8 w-8" /> GitBook
+              </span>
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleNavLinkClick("search")}

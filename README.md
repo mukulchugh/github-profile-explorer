@@ -4,6 +4,8 @@ GitBook is a modern React application that allows users to search for GitHub pro
 
 ![GitBook Application Screenshot](./screenshot.png)
 
+## Live Project Demo - https://get-gitbook.vercel.app/
+
 ## 🚀 Features
 
 - **User Search**: Search GitHub users by username with real-time suggestions
