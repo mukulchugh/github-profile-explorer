@@ -321,17 +321,18 @@ function HomeContent() {
 
 const Footer = () => {
   return (
-    <Card className="flex justify-between items-center px-6 py-4 bg-card rounded-none !border-t border-border border-b-0 border-l-0 border-r-0">
-      <p>
+    <Card className="flex  gap-1 flex-row justify-between items-center p-3  md:px-6 md:py-4 bg-card rounded-none !border-t border-border border-b-0 border-l-0 border-r-0">
+      <p className="text-sm md:text-base">
         built with ❤️ by
-        <a href="https://mukulchugh.com" className="text-primary ml-1 hover:underline">
+        <a href="https://mukulchugh.com" className="text-primary ml-1 hover:underline ">
           Mukul Chugh
         </a>
       </p>
+
       <p>
         <a
           href="https://github.com/mukulchugh/github-profile-explorer"
-          className="text-primary ml-1 flex items-center gap-1 hover:underline "
+          className="text-primary ml-1 flex items-center gap-1 hover:underline text-sm md:text-base"
         >
           <IconBrandGithub className="h-4 w-4 " />
           View Source Code
